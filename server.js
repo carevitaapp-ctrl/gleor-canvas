@@ -61,7 +61,7 @@ app.post('/process', async (req, res) => {
     const cropH = maxY - minY + 1;
 
     const TARGET = Math.round(CANVAS * fillRatio);
-    const scale = Math.min(TARGET / cropW, TARGET / cropH);
+    const scale  = Math.min(TARGET / cropW, TARGET / cropH);
 
     const newW = Math.round(cropW * scale);
     const newH = Math.round(cropH * scale);
@@ -83,16 +83,24 @@ app.post('/process', async (req, res) => {
       .png()
       .toBuffer();
 
+    // Binary response for n8n HTTP Request (responseFormat: file)
+    const acceptsBinary = (req.headers.accept || '').includes('image/png');
+    if (acceptsBinary) {
+      res.set('Content-Type', 'image/png');
+      res.set('X-Category', category);
+      res.set('X-Fill-Ratio', String(fillRatio));
+      res.set('X-BBox', cropW + 'x' + cropH);
+      res.set('X-Scaled', newW + 'x' + newH);
+      return res.send(output);
+    }
+
     return res.json({
-      width:     1200,
-      height:    1200,
-      format:    'png',
-      category,
-      fillRatio,
-      bbox:      { width: cropW, height: cropH },
-      scaled:    { width: newW, height: newH },
-      padding:   { top, bottom: CANVAS - newH - top, left, right: CANVAS - newW - left },
-      image:     output.toString('base64'),
+      width: 1200, height: 1200, format: 'png',
+      category, fillRatio,
+      bbox:    { width: cropW,  height: cropH },
+      scaled:  { width: newW,   height: newH },
+      padding: { top, bottom: CANVAS - newH - top, left, right: CANVAS - newW - left },
+      image:   output.toString('base64'),
     });
 
   } catch (err) {
@@ -103,6 +111,4 @@ app.post('/process', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`gleor-canvas running on ${PORT}`);
-});
+app.listen(PORT, () => console.log(`gleor-canvas running on ${PORT}`));
