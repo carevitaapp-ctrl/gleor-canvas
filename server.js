@@ -22,31 +22,68 @@ app.post('/process', async (req, res) => {
     const inputBuffer = Buffer.from(image, 'base64');
 
     const CANVAS = 1200;
-    const PADDING = 80;
-    const MAX_DIM = CANVAS - PADDING * 2;
 
-    const meta = await sharp(inputBuffer).metadata();
+    const { data, info } = await sharp(inputBuffer)
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+
+    // Alpha bounding box hesapla
+    let minX = info.width;
+    let minY = info.height;
+    let maxX = 0;
+    let maxY = 0;
+
+    for (let y = 0; y < info.height; y++) {
+      for (let x = 0; x < info.width; x++) {
+        const alpha = data[(y * info.width + x) * 4 + 3];
+
+        if (alpha > 10) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+
+    // Tamamen boş görsel kontrolü
+    if (minX > maxX || minY > maxY) {
+      return res.status(400).json({
+        error: 'No visible pixels detected'
+      });
+    }
+
+    const cropW = maxX - minX + 1;
+    const cropH = maxY - minY + 1;
+
+    // Ürün canvas'ın yaklaşık %80'ini kaplasın
+    const TARGET = Math.round(CANVAS * 0.80);
 
     const scale = Math.min(
-      MAX_DIM / meta.width,
-      MAX_DIM / meta.height
+      TARGET / cropW,
+      TARGET / cropH
     );
 
-    const newWidth = Math.round(meta.width * scale);
-    const newHeight = Math.round(meta.height * scale);
+    const newW = Math.round(cropW * scale);
+    const newH = Math.round(cropH * scale);
 
-    const left = Math.round((CANVAS - newWidth) / 2);
-    const top = Math.round((CANVAS - newHeight) / 2);
+    const left = Math.round((CANVAS - newW) / 2);
+    const top = Math.round((CANVAS - newH) / 2);
 
     const output = await sharp(inputBuffer)
-      .resize(newWidth, newHeight, {
-        fit: 'contain'
+      .extract({
+        left: minX,
+        top: minY,
+        width: cropW,
+        height: cropH
       })
+      .resize(newW, newH)
       .extend({
         top,
-        bottom: CANVAS - newHeight - top,
+        bottom: CANVAS - newH - top,
         left,
-        right: CANVAS - newWidth - left,
+        right: CANVAS - newW - left,
         background: {
           r: 255,
           g: 255,
@@ -64,6 +101,10 @@ app.post('/process', async (req, res) => {
       width: 1200,
       height: 1200,
       format: 'png',
+      bbox: {
+        width: cropW,
+        height: cropH
+      },
       image: output.toString('base64')
     });
 
