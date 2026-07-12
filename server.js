@@ -129,51 +129,56 @@ async function computeProductBBox(rgbData, width, height) {
   return { minX, minY, maxX, maxY };
 }
 
-// TASK-014: bounded metal-specific overrides. All values are conservative;
-// the goal is preservation of the real metal identity, not recoloring.
-// The base params come from paramsForAttempt; the metal profile overrides
-// only wbGain / saturation / brightness (never touches sharpen or shadow).
+// TASK-014 + TASK-016 (v4 calibration): bounded metal-specific overrides.
+// v4 (2026-07-12) reduces WB neutralization on warm metals so the natural metal
+// hue is preserved rather than pushed toward chalk white. Adjusted after QA
+// feedback in execution #104758 ("slight plastic/waxy rose gold, WB too neutral").
 const METAL_PROFILES = {
-  yellow_gold: { wbGain: 0.55, saturation: 1.06, brightness: 1.02 },
-  rose_gold:   { wbGain: 0.55, saturation: 1.04, brightness: 1.02 },
+  yellow_gold: { wbGain: 0.40, saturation: 1.06, brightness: 1.03 },
+  rose_gold:   { wbGain: 0.35, saturation: 1.04, brightness: 1.03 },
   white_gold:  { wbGain: 0.75, saturation: 0.98, brightness: 1.02 },
   silver:      { wbGain: 0.80, saturation: 0.95, brightness: 1.02 },
   platinum:    { wbGain: 0.80, saturation: 0.95, brightness: 1.00 },
-  unknown:     null,  // no override — use base params
+  unknown:     null,
 };
 
 function paramsForAttempt(attempt) {
-  // v3 calibration (TASK-012 luxury studio lighting): closes the visible gap
-  // toward Mejuri/PDPAOLA/Missoma-class catalog output. Deterministic Sharp only.
+  // v4 calibration (TASK-016, 2026-07-12): tuned in response to QA #104758.
+  // Deltas vs v3:
+  //   - claritySharpen m1: 0.20 → 0.12  (less midtone-contrast punch → less "plastic")
+  //   - microSharpen  m1: 1.10 → 0.55  (halve highlight sharpen → kills halos on facets)
+  //   - microSharpen sigma: 0.6 → 0.5   (finer radius, gentler edges)
+  //   - shadow outer opacity: 0.14 → 0.10, rxMul 0.44 → 0.50, ryMul 0.07 → 0.08
+  //   - shadow inner opacity: 0.28 → 0.20, rxMul 0.22 → 0.20
+  //   - shadowBlur: 14 → 22             (softer, studio-realistic diffusion)
+  // Non-goals still intact: no hue rotation, no per-channel colour surgery,
+  // no facet synthesis, no reflection generation.
   return attempt === 0
     ? {
         wbGain: 0.7,
         brightness: 1.02,
         saturation: 1.05,
-        // Two-pass sharpening — clarity (midtone contrast, "surface depth")
-        // then micro-detail (highlight punch on metal + facets).
-        claritySharpen: { sigma: 5,   m1: 0.20, m2: 0.05 },
-        microSharpen:   { sigma: 0.6, m1: 1.10, m2: 0.40 },
+        claritySharpen: { sigma: 5,   m1: 0.12, m2: 0.04 },
+        microSharpen:   { sigma: 0.5, m1: 0.55, m2: 0.30 },
         bgSnapDev: 5,
         maskEdgeStart: 5,
         maskEdgeFull: 20,
-        // Two-layer soft-studio drop shadow — dense inner (contact) + soft outer.
-        shadowOuter: { rxMul: 0.44, ryMul: 0.07, ryMin: 16, opacity: 0.14 },
-        shadowInner: { rxMul: 0.22, ryMul: 0.03, ryMin: 6,  opacity: 0.28 },
-        shadowBlur: 14,
+        shadowOuter: { rxMul: 0.50, ryMul: 0.08, ryMin: 20, opacity: 0.10 },
+        shadowInner: { rxMul: 0.20, ryMul: 0.025, ryMin: 5, opacity: 0.20 },
+        shadowBlur: 22,
       }
     : {
         wbGain: 0.5,
         brightness: 1.01,
         saturation: 1.03,
-        claritySharpen: null,                          // skip clarity in fallback
-        microSharpen:   { sigma: 0.4, m1: 0.6, m2: 0.3 },
+        claritySharpen: null,
+        microSharpen:   { sigma: 0.4, m1: 0.45, m2: 0.25 },
         bgSnapDev: 3,
         maskEdgeStart: 3,
         maskEdgeFull: 15,
-        shadowOuter: { rxMul: 0.42, ryMul: 0.06, ryMin: 14, opacity: 0.10 },
-        shadowInner: null,                             // single-layer in fallback
-        shadowBlur: 20,
+        shadowOuter: { rxMul: 0.46, ryMul: 0.07, ryMin: 18, opacity: 0.08 },
+        shadowInner: null,
+        shadowBlur: 26,
       };
 }
 
