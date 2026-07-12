@@ -143,42 +143,40 @@ const METAL_PROFILES = {
 };
 
 function paramsForAttempt(attempt) {
-  // v4 calibration (TASK-016, 2026-07-12): tuned in response to QA #104758.
-  // Deltas vs v3:
-  //   - claritySharpen m1: 0.20 → 0.12  (less midtone-contrast punch → less "plastic")
-  //   - microSharpen  m1: 1.10 → 0.55  (halve highlight sharpen → kills halos on facets)
-  //   - microSharpen sigma: 0.6 → 0.5   (finer radius, gentler edges)
-  //   - shadow outer opacity: 0.14 → 0.10, rxMul 0.44 → 0.50, ryMul 0.07 → 0.08
-  //   - shadow inner opacity: 0.28 → 0.20, rxMul 0.22 → 0.20
-  //   - shadowBlur: 14 → 22             (softer, studio-realistic diffusion)
-  // Non-goals still intact: no hue rotation, no per-channel colour surgery,
-  // no facet synthesis, no reflection generation.
+  // v5 calibration (TASK-016 iteration 2, 2026-07-12): tuned in response to QA #104772.
+  // Deltas vs v4:
+  //   - claritySharpen m1: 0.12 → 0.10  (still gentler midtone punch)
+  //   - microSharpen  m1: 0.55 → 0.42  (further reduce halos on prong / band edges)
+  //   - maskEdgeFull: 20 → 17            (tighter mask ramp — less fringe on prong)
+  //   - shadow outer rxMul: 0.50 → 0.44, blur 22 → 16   (more directional, less "cloud")
+  //   - shadow inner: rxMul 0.20 → 0.24, ryMul 0.025 → 0.035, opacity 0.20 → 0.24  (contact realism)
+  // Non-goals still intact.
   return attempt === 0
     ? {
         wbGain: 0.7,
         brightness: 1.02,
         saturation: 1.05,
-        claritySharpen: { sigma: 5,   m1: 0.12, m2: 0.04 },
-        microSharpen:   { sigma: 0.5, m1: 0.55, m2: 0.30 },
+        claritySharpen: { sigma: 5,   m1: 0.10, m2: 0.03 },
+        microSharpen:   { sigma: 0.5, m1: 0.42, m2: 0.25 },
         bgSnapDev: 5,
         maskEdgeStart: 5,
-        maskEdgeFull: 20,
-        shadowOuter: { rxMul: 0.50, ryMul: 0.08, ryMin: 20, opacity: 0.10 },
-        shadowInner: { rxMul: 0.20, ryMul: 0.025, ryMin: 5, opacity: 0.20 },
-        shadowBlur: 22,
+        maskEdgeFull: 17,
+        shadowOuter: { rxMul: 0.44, ryMul: 0.07, ryMin: 18, opacity: 0.11 },
+        shadowInner: { rxMul: 0.24, ryMul: 0.035, ryMin: 7, opacity: 0.24 },
+        shadowBlur: 16,
       }
     : {
         wbGain: 0.5,
         brightness: 1.01,
         saturation: 1.03,
         claritySharpen: null,
-        microSharpen:   { sigma: 0.4, m1: 0.45, m2: 0.25 },
+        microSharpen:   { sigma: 0.4, m1: 0.35, m2: 0.22 },
         bgSnapDev: 3,
         maskEdgeStart: 3,
-        maskEdgeFull: 15,
-        shadowOuter: { rxMul: 0.46, ryMul: 0.07, ryMin: 18, opacity: 0.08 },
+        maskEdgeFull: 14,
+        shadowOuter: { rxMul: 0.42, ryMul: 0.06, ryMin: 16, opacity: 0.09 },
         shadowInner: null,
-        shadowBlur: 26,
+        shadowBlur: 20,
       };
 }
 
