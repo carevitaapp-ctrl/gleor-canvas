@@ -130,11 +130,31 @@ async function computeProductBBox(rgbData, width, height) {
 }
 
 function paramsForAttempt(attempt) {
-  // Attempt 0: default, expects a well-prepped canvas.
-  // Attempt 1: safer fallback (smaller WB nudge, gentler sharpen).
+  // v2 calibration (TASK-012): tuned for Mejuri/PDPAOLA/Missoma-class output.
+  // Attempt 0: default premium-catalog look. Attempt 1: safer fallback for edge cases.
   return attempt === 0
-    ? { wbGain: 1.0, sharpen: { sigma: 0.3, m1: 0.5, m2: 0.5 } }
-    : { wbGain: 0.6, sharpen: { sigma: 0.2, m1: 0.3, m2: 0.3 } };
+    ? {
+        wbGain: 0.7,           // corner-WB correction, softened to protect metal hue
+        brightness: 1.02,      // gentle exposure lift
+        saturation: 1.05,      // mild warmth boost for metals (never > 1.08)
+        sharpen: { sigma: 0.5, m1: 0.9, m2: 0.4 },  // more on highlights than shadows
+        bgSnapDev: 5,          // pixel maxDev below this → snap to (255,255,255)
+        maskEdgeStart: 5,      // maxDev where alpha ramp starts
+        maskEdgeFull: 20,      // maxDev where alpha = 255
+        shadowOpacity: 0.18,
+        shadowBlur: 14,
+      }
+    : {
+        wbGain: 0.5,
+        brightness: 1.01,
+        saturation: 1.03,
+        sharpen: { sigma: 0.35, m1: 0.6, m2: 0.3 },
+        bgSnapDev: 3,
+        maskEdgeStart: 3,
+        maskEdgeFull: 15,
+        shadowOpacity: 0.12,
+        shadowBlur: 20,
+      };
 }
 
 async function renderHero(canvasBuffer, rawCategory, attempt) {
@@ -142,8 +162,8 @@ async function renderHero(canvasBuffer, rawCategory, attempt) {
   const config = CATEGORY_CONFIG[category] || CATEGORY_CONFIG.bracelet;
   const p = paramsForAttempt(attempt);
 
-  // Sample corner white pixels for WB correction (input is Canvas: white bg).
-  const { data: raw, info } = await sharp(canvasBuffer)
+  // 1. Baseline flatten + corner-WB sample.
+  const { data: raw0, info } = await sharp(canvasBuffer)
     .flatten({ background: { r: 255, g: 255, b: 255 } })
     .raw()
     .toBuffer({ resolveWithObject: true });
@@ -153,32 +173,97 @@ async function renderHero(canvasBuffer, rawCategory, attempt) {
   let sR = 0, sG = 0, sB = 0;
   for (const [cx, cy] of corners) {
     const i = (cy * W + cx) * 3;
-    sR += raw[i]; sG += raw[i+1]; sB += raw[i+2];
+    sR += raw0[i]; sG += raw0[i+1]; sB += raw0[i+2];
   }
   const meanR = sR / corners.length, meanG = sG / corners.length, meanB = sB / corners.length;
-
-  // WB correction: nudge each channel offset so corners average toward 255.
   const off = (v) => Math.round(p.wbGain * (255 - v));
   const offR = off(meanR), offG = off(meanG), offB = off(meanB);
 
-  // Build the hero pipeline (deterministic operations only).
-  // Steps in §11.4: background → exposure/WB/temp → contrast → highlight roll-off
-  // → shadow (deferred) → reflection (deferred) → sharpen → artifact cleanup.
-  const output = await sharp(canvasBuffer)
+  // 2. Apply WB + modulate + sharpen globally.
+  const enh = await sharp(canvasBuffer)
     .flatten({ background: { r: 255, g: 255, b: 255 } })
     .linear([1, 1, 1], [offR, offG, offB])
+    .modulate({ brightness: p.brightness, saturation: p.saturation })
     .sharpen(p.sharpen)
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const eData = enh.data;
+
+  // 3. Build RGBA with pure-white bg snap and soft product mask.
+  //    Also compute product bbox for shadow placement.
+  const rgba = Buffer.alloc(W * H * 4);
+  let minX = W, minY = H, maxX = 0, maxY = 0;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const i3 = (y * W + x) * 3;
+      const i4 = (y * W + x) * 4;
+      let r = eData[i3], g = eData[i3+1], b = eData[i3+2];
+      const maxDev = Math.max(255 - r, 255 - g, 255 - b);
+      let a;
+      if (maxDev < p.bgSnapDev) {
+        // Definite background — force pure white, transparent for compositing.
+        r = 255; g = 255; b = 255; a = 0;
+      } else if (maxDev < p.maskEdgeFull) {
+        // Ambiguous edge — soft ramp preserves metallic highlights.
+        a = Math.round((maxDev - p.maskEdgeStart) / (p.maskEdgeFull - p.maskEdgeStart) * 255);
+        if (a < 0) a = 0; if (a > 255) a = 255;
+        if (a > 15) {
+          if (x < minX) minX = x; if (x > maxX) maxX = x;
+          if (y < minY) minY = y; if (y > maxY) maxY = y;
+        }
+      } else {
+        // Definite product.
+        a = 255;
+        if (x < minX) minX = x; if (x > maxX) maxX = x;
+        if (y < minY) minY = y; if (y > maxY) maxY = y;
+      }
+      rgba[i4] = r; rgba[i4+1] = g; rgba[i4+2] = b; rgba[i4+3] = a;
+    }
+  }
+
+  const productLayer = await sharp(rgba, { raw: { width: W, height: H, channels: 4 } })
+    .png()
+    .toBuffer();
+
+  // 4. Soft elliptical drop shadow beneath the product bbox.
+  const bboxW = Math.max(1, maxX - minX + 1);
+  const bboxH = Math.max(1, maxY - minY + 1);
+  const shadowRx = Math.round(bboxW * 0.42);
+  const shadowRy = Math.round(Math.max(bboxH * 0.06, 14));
+  const shadowCx = Math.round((minX + maxX) / 2);
+  const shadowCy = Math.min(H - 4, Math.round(maxY + shadowRy * 0.55));
+  const shadowSvg = Buffer.from(
+    `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">` +
+    `<ellipse cx="${shadowCx}" cy="${shadowCy}" rx="${shadowRx}" ry="${shadowRy}" ` +
+    `fill="rgba(0,0,0,${p.shadowOpacity})" />` +
+    `</svg>`
+  );
+  const shadowLayer = await sharp(shadowSvg).blur(p.shadowBlur).png().toBuffer();
+
+  // 5. Composite: white base → shadow → product. Flatten to final RGB PNG.
+  const output = await sharp({
+    create: { width: W, height: H, channels: 3, background: { r: 255, g: 255, b: 255 } },
+  })
+    .composite([
+      { input: shadowLayer, top: 0, left: 0 },
+      { input: productLayer, top: 0, left: 0 },
+    ])
+    .flatten({ background: { r: 255, g: 255, b: 255 } })
     .png({ compressionLevel: 9 })
     .toBuffer();
 
   return {
     output, category, fillRatio: config.fillRatio, attempt,
-    wbSampled: { R: meanR, G: meanG, B: meanB },
+    wbSampled: { R: +meanR.toFixed(1), G: +meanG.toFixed(1), B: +meanB.toFixed(1) },
     wbCorrection: { R: offR, G: offG, B: offB },
+    bbox: { width: bboxW, height: bboxH, minX, minY, maxX, maxY },
+    shadow: { cx: shadowCx, cy: shadowCy, rx: shadowRx, ry: shadowRy, opacity: p.shadowOpacity },
   };
 }
 
 async function validateHero(heroBuffer, expected) {
+  // expected: { fillRatio, productBbox? } — productBbox from renderHero preferred
+  // so the shadow region doesn't get mistaken for the product on the final image.
   const { data, info } = await sharp(heroBuffer)
     .flatten({ background: { r: 255, g: 255, b: 255 } })
     .raw()
@@ -188,11 +273,16 @@ async function validateHero(heroBuffer, expected) {
   const failures = [];
   const measurements = {};
 
-  // Bounding box on the hero image.
-  const { minX, minY, maxX, maxY } = await computeProductBBox(data, W, H);
-  if (maxX < 0 || maxY < 0) {
-    failures.push({ id: 'A10', reason: 'no product pixels detected' });
-    return { passed: false, failures, measurements };
+  let minX, minY, maxX, maxY;
+  if (expected.productBbox) {
+    ({ minX, minY, maxX, maxY } = expected.productBbox);
+  } else {
+    const bbox = await computeProductBBox(data, W, H);
+    if (bbox.maxX < 0 || bbox.maxY < 0) {
+      failures.push({ id: 'A10', reason: 'no product pixels detected' });
+      return { passed: false, failures, measurements };
+    }
+    minX = bbox.minX; minY = bbox.minY; maxX = bbox.maxX; maxY = bbox.maxY;
   }
   const bboxW = maxX - minX + 1;
   const bboxH = maxY - minY + 1;
@@ -212,12 +302,15 @@ async function validateHero(heroBuffer, expected) {
   measurements.scaleErr = +scaleErr.toFixed(4);
   if (scaleErr > 0.02) failures.push({ id: 'A2', longer, target: +target.toFixed(1), errPct: +(scaleErr * 100).toFixed(2) });
 
-  // A3 White background — sample non-product pixels
+  // A3 White background — sample non-product pixels, excluding the shadow
+  // region (shadow sits below the product; margin below is larger than sides).
   let bgR = 0, bgG = 0, bgB = 0, bgN = 0;
   const step = 8;
+  const marginSides = 20, marginTop = 20, marginBottom = 50;
   for (let y = 0; y < H; y += step) {
     for (let x = 0; x < W; x += step) {
-      if (x < minX - 5 || x > maxX + 5 || y < minY - 5 || y > maxY + 5) {
+      if (x < minX - marginSides || x > maxX + marginSides ||
+          y < minY - marginTop  || y > maxY + marginBottom) {
         const i = (y * W + x) * 3;
         bgR += data[i]; bgG += data[i+1]; bgB += data[i+2]; bgN++;
       }
@@ -289,7 +382,7 @@ app.post('/hero', upload.single('image'), async (req, res) => {
     let lastValidation = null;
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
       const r = await renderHero(inputBuffer, rawCategory, attempt);
-      const v = await validateHero(r.output, { fillRatio: r.fillRatio });
+      const v = await validateHero(r.output, { fillRatio: r.fillRatio, productBbox: r.bbox });
       lastResult = r; lastValidation = v;
       if (v.passed) {
         const acceptsBinary = (req.headers.accept || '').includes('image/png');
