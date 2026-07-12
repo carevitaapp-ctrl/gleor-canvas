@@ -130,29 +130,36 @@ async function computeProductBBox(rgbData, width, height) {
 }
 
 function paramsForAttempt(attempt) {
-  // v2 calibration (TASK-012): tuned for Mejuri/PDPAOLA/Missoma-class output.
-  // Attempt 0: default premium-catalog look. Attempt 1: safer fallback for edge cases.
+  // v3 calibration (TASK-012 luxury studio lighting): closes the visible gap
+  // toward Mejuri/PDPAOLA/Missoma-class catalog output. Deterministic Sharp only.
   return attempt === 0
     ? {
-        wbGain: 0.7,           // corner-WB correction, softened to protect metal hue
-        brightness: 1.02,      // gentle exposure lift
-        saturation: 1.05,      // mild warmth boost for metals (never > 1.08)
-        sharpen: { sigma: 0.5, m1: 0.9, m2: 0.4 },  // more on highlights than shadows
-        bgSnapDev: 5,          // pixel maxDev below this → snap to (255,255,255)
-        maskEdgeStart: 5,      // maxDev where alpha ramp starts
-        maskEdgeFull: 20,      // maxDev where alpha = 255
-        shadowOpacity: 0.18,
+        wbGain: 0.7,
+        brightness: 1.02,
+        saturation: 1.05,
+        // Two-pass sharpening — clarity (midtone contrast, "surface depth")
+        // then micro-detail (highlight punch on metal + facets).
+        claritySharpen: { sigma: 5,   m1: 0.20, m2: 0.05 },
+        microSharpen:   { sigma: 0.6, m1: 1.10, m2: 0.40 },
+        bgSnapDev: 5,
+        maskEdgeStart: 5,
+        maskEdgeFull: 20,
+        // Two-layer soft-studio drop shadow — dense inner (contact) + soft outer.
+        shadowOuter: { rxMul: 0.44, ryMul: 0.07, ryMin: 16, opacity: 0.14 },
+        shadowInner: { rxMul: 0.22, ryMul: 0.03, ryMin: 6,  opacity: 0.28 },
         shadowBlur: 14,
       }
     : {
         wbGain: 0.5,
         brightness: 1.01,
         saturation: 1.03,
-        sharpen: { sigma: 0.35, m1: 0.6, m2: 0.3 },
+        claritySharpen: null,                          // skip clarity in fallback
+        microSharpen:   { sigma: 0.4, m1: 0.6, m2: 0.3 },
         bgSnapDev: 3,
         maskEdgeStart: 3,
         maskEdgeFull: 15,
-        shadowOpacity: 0.12,
+        shadowOuter: { rxMul: 0.42, ryMul: 0.06, ryMin: 14, opacity: 0.10 },
+        shadowInner: null,                             // single-layer in fallback
         shadowBlur: 20,
       };
 }
@@ -179,14 +186,14 @@ async function renderHero(canvasBuffer, rawCategory, attempt) {
   const off = (v) => Math.round(p.wbGain * (255 - v));
   const offR = off(meanR), offG = off(meanG), offB = off(meanB);
 
-  // 2. Apply WB + modulate + sharpen globally.
-  const enh = await sharp(canvasBuffer)
+  // 2. Apply WB + modulate + two-pass sharpen (clarity + micro).
+  let pipeline = sharp(canvasBuffer)
     .flatten({ background: { r: 255, g: 255, b: 255 } })
     .linear([1, 1, 1], [offR, offG, offB])
-    .modulate({ brightness: p.brightness, saturation: p.saturation })
-    .sharpen(p.sharpen)
-    .raw()
-    .toBuffer({ resolveWithObject: true });
+    .modulate({ brightness: p.brightness, saturation: p.saturation });
+  if (p.claritySharpen) pipeline = pipeline.sharpen(p.claritySharpen);
+  pipeline = pipeline.sharpen(p.microSharpen);
+  const enh = await pipeline.raw().toBuffer({ resolveWithObject: true });
   const eData = enh.data;
 
   // 3. Build RGBA with pure-white bg snap and soft product mask.
@@ -225,18 +232,28 @@ async function renderHero(canvasBuffer, rawCategory, attempt) {
     .png()
     .toBuffer();
 
-  // 4. Soft elliptical drop shadow beneath the product bbox.
+  // 4. Two-layer soft-studio drop shadow beneath the product bbox.
+  //    Outer: broad, soft, low opacity — key light bounce.
+  //    Inner: narrow, denser, near-product — contact shadow.
   const bboxW = Math.max(1, maxX - minX + 1);
   const bboxH = Math.max(1, maxY - minY + 1);
-  const shadowRx = Math.round(bboxW * 0.42);
-  const shadowRy = Math.round(Math.max(bboxH * 0.06, 14));
-  const shadowCx = Math.round((minX + maxX) / 2);
-  const shadowCy = Math.min(H - 4, Math.round(maxY + shadowRy * 0.55));
+  const cx = Math.round((minX + maxX) / 2);
+  const outerRx = Math.round(bboxW * p.shadowOuter.rxMul);
+  const outerRy = Math.round(Math.max(bboxH * p.shadowOuter.ryMul, p.shadowOuter.ryMin));
+  const outerCy = Math.min(H - 4, Math.round(maxY + outerRy * 0.55));
+  let ellipses =
+    `<ellipse cx="${cx}" cy="${outerCy}" rx="${outerRx}" ry="${outerRy}" ` +
+    `fill="rgba(0,0,0,${p.shadowOuter.opacity})" />`;
+  if (p.shadowInner) {
+    const innerRx = Math.round(bboxW * p.shadowInner.rxMul);
+    const innerRy = Math.round(Math.max(bboxH * p.shadowInner.ryMul, p.shadowInner.ryMin));
+    const innerCy = Math.min(H - 3, Math.round(maxY + innerRy * 0.4));
+    ellipses +=
+      `<ellipse cx="${cx}" cy="${innerCy}" rx="${innerRx}" ry="${innerRy}" ` +
+      `fill="rgba(0,0,0,${p.shadowInner.opacity})" />`;
+  }
   const shadowSvg = Buffer.from(
-    `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">` +
-    `<ellipse cx="${shadowCx}" cy="${shadowCy}" rx="${shadowRx}" ry="${shadowRy}" ` +
-    `fill="rgba(0,0,0,${p.shadowOpacity})" />` +
-    `</svg>`
+    `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">${ellipses}</svg>`
   );
   const shadowLayer = await sharp(shadowSvg).blur(p.shadowBlur).png().toBuffer();
 
@@ -257,7 +274,7 @@ async function renderHero(canvasBuffer, rawCategory, attempt) {
     wbSampled: { R: +meanR.toFixed(1), G: +meanG.toFixed(1), B: +meanB.toFixed(1) },
     wbCorrection: { R: offR, G: offG, B: offB },
     bbox: { width: bboxW, height: bboxH, minX, minY, maxX, maxY },
-    shadow: { cx: shadowCx, cy: shadowCy, rx: shadowRx, ry: shadowRy, opacity: p.shadowOpacity },
+    shadow: { outerRx, outerRy, outerCy, layers: p.shadowInner ? 2 : 1, blur: p.shadowBlur },
   };
 }
 
