@@ -129,6 +129,19 @@ async function computeProductBBox(rgbData, width, height) {
   return { minX, minY, maxX, maxY };
 }
 
+// TASK-014: bounded metal-specific overrides. All values are conservative;
+// the goal is preservation of the real metal identity, not recoloring.
+// The base params come from paramsForAttempt; the metal profile overrides
+// only wbGain / saturation / brightness (never touches sharpen or shadow).
+const METAL_PROFILES = {
+  yellow_gold: { wbGain: 0.55, saturation: 1.06, brightness: 1.02 },
+  rose_gold:   { wbGain: 0.55, saturation: 1.04, brightness: 1.02 },
+  white_gold:  { wbGain: 0.75, saturation: 0.98, brightness: 1.02 },
+  silver:      { wbGain: 0.80, saturation: 0.95, brightness: 1.02 },
+  platinum:    { wbGain: 0.80, saturation: 0.95, brightness: 1.00 },
+  unknown:     null,  // no override — use base params
+};
+
 function paramsForAttempt(attempt) {
   // v3 calibration (TASK-012 luxury studio lighting): closes the visible gap
   // toward Mejuri/PDPAOLA/Missoma-class catalog output. Deterministic Sharp only.
@@ -164,10 +177,18 @@ function paramsForAttempt(attempt) {
       };
 }
 
-async function renderHero(canvasBuffer, rawCategory, attempt) {
+async function renderHero(canvasBuffer, rawCategory, attempt, rawMetalTone) {
   const category = (rawCategory || 'bracelet').toLowerCase().trim();
   const config = CATEGORY_CONFIG[category] || CATEGORY_CONFIG.bracelet;
-  const p = paramsForAttempt(attempt);
+  const base = paramsForAttempt(attempt);
+
+  // Apply metal profile override if present (attempt 0 only — fallback uses base).
+  const metalKey = (rawMetalTone || 'unknown').toLowerCase().trim();
+  const metalProfile = (attempt === 0) ? METAL_PROFILES[metalKey] : null;
+  const p = metalProfile
+    ? { ...base, wbGain: metalProfile.wbGain, saturation: metalProfile.saturation, brightness: metalProfile.brightness }
+    : base;
+  const appliedMetalTone = metalProfile ? metalKey : 'unknown';
 
   // 1. Baseline flatten + corner-WB sample.
   const { data: raw0, info } = await sharp(canvasBuffer)
@@ -275,6 +296,9 @@ async function renderHero(canvasBuffer, rawCategory, attempt) {
     wbCorrection: { R: offR, G: offG, B: offB },
     bbox: { width: bboxW, height: bboxH, minX, minY, maxX, maxY },
     shadow: { outerRx, outerRy, outerCy, layers: p.shadowInner ? 2 : 1, blur: p.shadowBlur },
+    metalTone: appliedMetalTone,
+    metalProfileApplied: !!metalProfile,
+    metalParams: metalProfile ? { wbGain: p.wbGain, saturation: p.saturation, brightness: p.brightness } : null,
   };
 }
 
@@ -383,22 +407,28 @@ app.post('/hero', upload.single('image'), async (req, res) => {
   try {
     let inputBuffer;
     let rawCategory;
+    let rawMetalTone;
+    let rawKarat;
 
     if (req.file) {
       inputBuffer = req.file.buffer;
       rawCategory = req.body.category;
+      rawMetalTone = req.body.metal_tone;
+      rawKarat = req.body.karat;
     } else {
-      const { image, category } = req.body || {};
+      const { image, category, metal_tone, karat } = req.body || {};
       if (!image) return res.status(400).json({ error: 'image field required (base64 or multipart file)' });
       inputBuffer = Buffer.from(image, 'base64');
       rawCategory = category;
+      rawMetalTone = metal_tone;
+      rawKarat = karat;
     }
 
-    const MAX_ATTEMPTS = 2; // controlled retry: 1 default attempt + 1 fallback
+    const MAX_ATTEMPTS = 2;
     let lastResult = null;
     let lastValidation = null;
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-      const r = await renderHero(inputBuffer, rawCategory, attempt);
+      const r = await renderHero(inputBuffer, rawCategory, attempt, rawMetalTone);
       const v = await validateHero(r.output, { fillRatio: r.fillRatio, productBbox: r.bbox });
       lastResult = r; lastValidation = v;
       if (v.passed) {
@@ -407,6 +437,9 @@ app.post('/hero', upload.single('image'), async (req, res) => {
           res.set('Content-Type', 'image/png');
           res.set('X-Category', r.category);
           res.set('X-Fill-Ratio', String(r.fillRatio));
+          res.set('X-Metal-Tone', r.metalTone);
+          res.set('X-Metal-Profile-Applied', String(r.metalProfileApplied));
+          if (rawKarat) res.set('X-Karat', String(rawKarat));
           res.set('X-Hero-Attempt', String(attempt));
           res.set('X-Hero-Status', 'approved');
           return res.send(r.output);
@@ -414,6 +447,9 @@ app.post('/hero', upload.single('image'), async (req, res) => {
         return res.json({
           width: 1200, height: 1200, format: 'png',
           category: r.category, fillRatio: r.fillRatio,
+          metalTone: r.metalTone, karat: rawKarat || null,
+          metalProfileApplied: r.metalProfileApplied,
+          metalParams: r.metalParams,
           attempt, status: 'approved',
           wbSampled: r.wbSampled, wbCorrection: r.wbCorrection,
           validation: v,
@@ -422,11 +458,11 @@ app.post('/hero', upload.single('image'), async (req, res) => {
       }
     }
 
-    // Both attempts failed → 422 rejected (do not return an image)
     return res.status(422).json({
       status: 'rejected',
       attempts: MAX_ATTEMPTS,
       category: lastResult ? lastResult.category : rawCategory,
+      metalTone: lastResult ? lastResult.metalTone : (rawMetalTone || 'unknown'),
       lastValidation,
       routeTo: 'manual review',
     });
