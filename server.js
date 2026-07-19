@@ -135,7 +135,7 @@ async function computeProductBBox(rgbData, width, height) {
 // feedback in execution #104758 ("slight plastic/waxy rose gold, WB too neutral").
 const METAL_PROFILES = {
   yellow_gold: { wbGain: 0.40, saturation: 1.06, brightness: 1.03 },
-  rose_gold:   { wbGain: 0.55, saturation: 1.02, brightness: 1.02 },
+  rose_gold:   { wbGain: 0.35, saturation: 1.04, brightness: 1.03 },
   white_gold:  { wbGain: 0.75, saturation: 0.98, brightness: 1.02 },
   silver:      { wbGain: 0.80, saturation: 0.95, brightness: 1.02 },
   platinum:    { wbGain: 0.80, saturation: 0.95, brightness: 1.00 },
