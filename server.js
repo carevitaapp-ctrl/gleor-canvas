@@ -158,12 +158,12 @@ function paramsForAttempt(attempt) {
         saturation: 1.05,
         claritySharpen: { sigma: 5,   m1: 0.10, m2: 0.03 },
         microSharpen:   { sigma: 0.5, m1: 0.42, m2: 0.25 },
-        bgSnapDev: 6,
-        maskEdgeStart: 6,
-        maskEdgeFull: 14,
-        shadowOuter: { rxMul: 0.46, ryMul: 0.075, ryMin: 18, opacity: 0.10 },
-        shadowInner: { rxMul: 0.32, ryMul: 0.050, ryMin: 12, opacity: 0.35 },
-        shadowBlur: 14,
+        bgSnapDev: 5,
+        maskEdgeStart: 5,
+        maskEdgeFull: 17,
+        shadowOuter: { rxMul: 0.44, ryMul: 0.07, ryMin: 18, opacity: 0.11 },
+        shadowInner: { rxMul: 0.24, ryMul: 0.035, ryMin: 7, opacity: 0.24 },
+        shadowBlur: 16,
       }
     : {
         wbGain: 0.5,
