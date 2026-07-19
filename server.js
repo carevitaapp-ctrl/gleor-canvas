@@ -161,9 +161,9 @@ function paramsForAttempt(attempt) {
         bgSnapDev: 5,
         maskEdgeStart: 5,
         maskEdgeFull: 17,
-        shadowOuter: { rxMul: 0.44, ryMul: 0.07, ryMin: 18, opacity: 0.11 },
+        shadowOuter: { rxMul: 0.50, ryMul: 0.09, ryMin: 18, opacity: 0.13 },
         shadowInner: { rxMul: 0.24, ryMul: 0.035, ryMin: 7, opacity: 0.24 },
-        shadowBlur: 16,
+        shadowBlur: 20,
       }
     : {
         wbGain: 0.5,
