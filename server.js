@@ -503,6 +503,46 @@ app.post('/process', upload.single('image'), async (req, res) => {
   }
 });
 
+// --- Hero Engine v7 (Phase 1) — preserve-only, two variants ---
+// A: no lighting.mode; B: lighting.mode=ai.preserve-hue-and-saturation.
+// Reads PHOTOROOM_API_KEY from process env. Independent of the legacy /hero endpoint.
+const heroEngine = require('./heroEngine');
+
+async function heroVariantHandler(variant, req, res) {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'image field required (multipart file)' });
+    const apiKey = process.env.PHOTOROOM_API_KEY;
+    if (!apiKey) return res.status(503).json({ error: 'PHOTOROOM_API_KEY not configured' });
+    const rawImageBuffer = req.file.buffer;
+    const category = req.body.category;
+    const metalTone = req.body.metal_tone;
+
+    const { output, meta } = await heroEngine.renderHero({
+      rawImageBuffer, category, metalTone, variant, apiKey,
+    });
+
+    const acceptsBinary = (req.headers.accept || '').includes('image/png');
+    if (acceptsBinary) {
+      res.set('Content-Type', 'image/png');
+      res.set('X-Hero-Variant', variant);
+      res.set('X-Hero-Category', meta.category);
+      res.set('X-Hero-Metal-Tone', meta.metalTone);
+      res.set('X-Hero-Input-MD5', meta.input_md5);
+      res.set('X-Hero-Output-MD5', meta.output_md5);
+      res.set('X-Hero-Pipeline-Version', meta.pipeline_version);
+      return res.send(output);
+    }
+    return res.json({ width: heroEngine.FINAL_SIZE, height: heroEngine.FINAL_SIZE, format: 'png', meta, image: output.toString('base64') });
+  } catch (err) {
+    console.error(`[hero-${variant}]`, err);
+    return res.status(err.statusCode || 500).json({ error: err.message });
+  }
+}
+
+app.post('/hero-a', upload.single('image'), (req, res) => heroVariantHandler('A', req, res));
+app.post('/hero-b', upload.single('image'), (req, res) => heroVariantHandler('B', req, res));
+app.post('/hero-c', upload.single('image'), (req, res) => heroVariantHandler('C', req, res));
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => console.log(`gleor-canvas running on ${PORT}`));
