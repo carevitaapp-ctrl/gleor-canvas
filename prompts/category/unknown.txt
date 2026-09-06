@@ -1,0 +1,20 @@
+CATEGORY: (unspecified — no reliable category signal)
+
+The pipeline could not confidently identify the jewelry category from filename or from Vision analysis. Treat every visible element of the input as authoritative and preserve it exactly.
+
+Framing:
+- Center the product optically in the frame with balanced negative space.
+- The product occupies approximately 50-70% of the frame area.
+- Preserve the input's viewing angle and orientation exactly.
+
+Preserve exactly (SKU fidelity):
+- Every visible structural element of the piece
+- Silhouette, proportions, geometry
+- All ornamentation, stones, engraving, texture
+- Chain, clasp, bail, wire, or other mechanical elements
+
+Do not:
+- Reinterpret the piece into a different category
+- Introduce props, hands, stands, or supporting objects
+- Rotate or reorient the piece
+- Add elements that are not present in the input

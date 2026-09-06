@@ -543,6 +543,30 @@ app.post('/hero-a', upload.single('image'), (req, res) => heroVariantHandler('A'
 app.post('/hero-b', upload.single('image'), (req, res) => heroVariantHandler('B', req, res));
 app.post('/hero-c', upload.single('image'), (req, res) => heroVariantHandler('C', req, res));
 
+// --- Catalog Pipeline (P0-P7) — GPT Image edit + Claude Vision QA ---
+// Reads ANTHROPIC_API_KEY and OPENAI_API_KEY from process env. Independent of
+// the legacy /hero and Hero Engine v7 endpoints — shares no code path.
+const catalog = require('./catalog');
+// BREAKING Input Contract V2: migrate ALL /catalog callers (n8n if applicable)
+// before production activation. Do not deploy while a single-image caller is
+// active. No fallback may treat one image as both RAW and Master Clean.
+const catalogUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 25 * 1024 * 1024, files: 2, fields: 1, fieldSize: 4096 },
+}).fields([
+  { name: 'original_raw', maxCount: 1 },
+  { name: 'master_clean_png', maxCount: 1 },
+]);
+app.post('/catalog', (req, res, next) => {
+  catalogUpload(req, res, err => {
+    if (err) {
+      const status = ['LIMIT_FILE_SIZE', 'LIMIT_FIELD_VALUE'].includes(err.code) ? 413 : 400;
+      return res.status(status).json({ error: err.message, code: err.code || 'INVALID_MULTIPART' });
+    }
+    next();
+  });
+}, catalog.createHandler());
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => console.log(`gleor-canvas running on ${PORT}`));

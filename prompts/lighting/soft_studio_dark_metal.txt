@@ -1,0 +1,18 @@
+LIGHTING: PREMIUM SOFT STUDIO — cool-metal variant
+
+Use diffused soft studio lighting appropriate for cool metals (silver, white gold, platinum). Compared to the default soft studio setup, add slightly more fill light into darker recessed areas so the metal does not read as dead, dull, or gray — but do not brighten so aggressively that the metal loses its cool temperature and shifts warm.
+
+Required characteristics:
+- Uniform, soft directional light — no hard specular hotspots
+- Cool character of the metal preserved; no push toward warm undertones
+- Gemstone facets remain crisp and sparkling but not glaring
+- No colored casts, especially no warm cast that would misidentify the metal
+- No cinematic drama or theatrical shadow
+- Physically plausible soft contact shadow directly under the piece
+
+Rejected lighting behaviors:
+- Any single harsh light source
+- Warm color cast (would visually reclassify the metal as yellow gold)
+- Overly dark recessed metal that reads as "dirty"
+- Flat uniform overexposure that eliminates form
+- Blue/steel push that reads as chrome or stainless

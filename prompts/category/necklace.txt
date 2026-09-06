@@ -1,0 +1,21 @@
+CATEGORY: NECKLACE
+
+Framing:
+- Present the necklace in a gentle loop or catenary hang matching the input's arrangement.
+- Center any pendant or focal element optically; if the necklace is chain-only, center the visual mass.
+- The full necklace span occupies approximately 60-80% of the frame area.
+
+Preserve exactly (SKU fidelity):
+- Chain link pattern and link thickness
+- Pendant / focal element placement, size, and orientation (if present)
+- Clasp geometry and mechanism
+- Overall length proportions
+- Any station, spacer, or graduated bead pattern
+
+Do not:
+- Change the chain link style
+- Add a pendant if the input has none
+- Remove a pendant if one is present
+- Substitute the clasp mechanism
+- Coil, twist, or restyle the necklace into a non-natural pose
+- Introduce props (neck forms, mannequins, hands)

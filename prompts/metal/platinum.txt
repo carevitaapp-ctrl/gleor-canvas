@@ -1,0 +1,11 @@
+METAL: PLATINUM
+
+Render as bright, dense, cool-neutral platinum with a fine polished finish. Platinum reads slightly denser and cooler than silver, and is more restrained and refined than mirror chrome.
+
+Preserve the metal's exact tone as it appears in the input. Do NOT shift toward:
+- yellow or warm undertones
+- steel blue
+- gray dullness
+- artificial mirror chrome sheen
+
+Reflections must read as refined studio softbox speculars — precise, restrained, luxurious. Preserve the natural density and cool-neutral character of the metal.

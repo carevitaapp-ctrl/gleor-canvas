@@ -1,0 +1,11 @@
+METAL: SILVER
+
+Render as clean, bright silver with a polished finish. Silver is neutral to slightly cool — never dark, never yellowed, never blue-shifted into steel.
+
+Preserve the metal's exact tone as it appears in the input. Do NOT shift toward:
+- gray dullness (dead metal appearance)
+- steel blue
+- chrome-mirror sheen
+- warm cream (which would misread as low-karat gold)
+
+Reflections must read as soft studio softbox speculars. The natural darker recessed areas of the piece are real depth — do not brighten them so much that the metal loses form, and do not confuse recessed shadows with "dirty" metal.

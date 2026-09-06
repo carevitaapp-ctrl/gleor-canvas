@@ -1,0 +1,18 @@
+QA LOCK — TIGHTENED (retry variant)
+
+The previous rendering attempt failed one or more catalog-quality criteria. Apply the following tightened constraints IN ADDITION to every constraint in the default catalog QA lock.
+
+Tighten:
+- SHADOW: Reduce shadow density and increase softness. The contact shadow must be very subtle — clearly connecting the product to the surface but never approaching an artificial oval halo. If in doubt, err on the side of a lighter shadow.
+- SHARPNESS: Reduce apparent sharpening intensity. Prefer slightly softer natural micro-detail over crisp edges. Absolutely no ringing halos on stone edges, metal edges, or facet borders.
+- FRAMING: Add a small amount of extra padding around the product — approximately 5-8% more generous than a tight crop. No product element may touch the frame edge.
+- SCALE: If the previous attempt made the product too small in the frame, increase apparent product scale within the category's target range. If the previous attempt made the product too large or edge-clipped, reduce scale to fit safely within the padded frame.
+- LIGHTING: Increase diffusion softness further. No hard specular hotspots on metal. Preserve gemstone sparkle but temper any hot facet reflections.
+- FLOATING: Ensure the contact shadow directly touches the base of the product. The piece must visibly sit on the surface, not hover.
+
+Do NOT change on retry:
+- The metal type, hue, or temperature
+- The SKU geometry: stone count, prong count, band width, silhouette, orientation
+- The category framing intent
+
+This is a targeted correction pass. Preserve every fidelity guarantee from the base QA lock.

@@ -1,0 +1,108 @@
+GATE A — PRODUCT TRUTH / SKU FIDELITY ONLY
+
+Compare ORIGINAL INPUT against RENDERED OUTPUT. The original image is the product-truth reference; historical render appearance is never structural authority.
+Category: {{CATEGORY}}
+Expected visible gemstone count from Product Truth: {{GEMSTONE_COUNT}}
+
+Evaluate ONLY physical SKU structure. Do not score metal color, gold warmth, lighting, highlights, sparkle, shadows, background, product scale within the canvas, or framing aesthetics.
+Compare proportions after allowing uniform whole-product scaling and translation. Preserve source asymmetry rather than imposing ideal symmetry.
+Any critical structural deviation MUST set critical_deviation=true on the affected criterion AND appear in critical_failures, even if its numeric score is high. Any changed physical construction, silhouette, component count/size/position, pavé boundary, row, prong, inner-band structure or perspective is critical. Missing source components are structural failures, not merely framing aesthetics.
+
+Criteria:
+
+1. geometry_fidelity — Preserve the exact physical construction, all visible components and their relationships; no invented, removed, resized, or reshaped elements.
+2. silhouette_fidelity — Preserve the outer and inner outlines, openings and relative shape, allowing only uniform whole-product scaling and translation.
+3. symmetry — Match the source symmetry or asymmetry. Never reward making the source more symmetrical.
+4. band_proportions — Preserve band width, profile and proportions relative to the rest of the product.
+5. band_curvature_thickness — Preserve band curvature, taper and thickness throughout visible regions.
+6. pave_start_boundary_fidelity — Preserve the exact location where each visible pavé section begins relative to the product.
+7. pave_end_boundary_fidelity — Preserve the exact location where each visible pavé section ends relative to the product.
+8. stone_layout_fidelity — Preserve stone count, positions, sizes, spacing, cuts and arrangement; no substitutions or additions.
+9. stone_row_fidelity — Preserve the number, path, spacing and boundaries of stone rows.
+10. prong_fidelity — Preserve prong count, positions, sizes, shapes and structural separation.
+11. inner_band_structural_fidelity — Preserve the inner opening, band surface construction, contours and visible physical markings; ignore photographic cleanliness.
+12. perspective_fidelity — Preserve source viewpoint, orientation and perspective; do not impose a preferred camera angle.
+
+For every criterion return an integer score from 0 to 100, applicable=true, and a concise factual note. Unassessable or ambiguous evidence must score 0 with an explanation; do not infer a pass.
+Only band/pavé/stone/row/prong-specific criteria may be applicable=false when that feature is physically absent in the original, with score=null, critical_deviation=false and an explanatory note. Occluded or unclear features are not automatically absent. Geometry, silhouette, symmetry and perspective always apply.
+Return ONLY a JSON object matching this shape. Replace all example scores and notes with your evaluation. Gate status and final approval are computed by code, never by averaging.
+
+critical_failures must always be an array; each entry is {"criterion":"one of the listed keys","reason":"specific structural deviation"}. Use [] only when no critical deviations were found.
+
+{
+  "criteria": {
+    "geometry_fidelity": {
+      "score": 0,
+      "applicable": true,
+      "note": "",
+      "critical_deviation": false
+    },
+    "silhouette_fidelity": {
+      "score": 0,
+      "applicable": true,
+      "note": "",
+      "critical_deviation": false
+    },
+    "symmetry": {
+      "score": 0,
+      "applicable": true,
+      "note": "",
+      "critical_deviation": false
+    },
+    "band_proportions": {
+      "score": 0,
+      "applicable": true,
+      "note": "",
+      "critical_deviation": false
+    },
+    "band_curvature_thickness": {
+      "score": 0,
+      "applicable": true,
+      "note": "",
+      "critical_deviation": false
+    },
+    "pave_start_boundary_fidelity": {
+      "score": 0,
+      "applicable": true,
+      "note": "",
+      "critical_deviation": false
+    },
+    "pave_end_boundary_fidelity": {
+      "score": 0,
+      "applicable": true,
+      "note": "",
+      "critical_deviation": false
+    },
+    "stone_layout_fidelity": {
+      "score": 0,
+      "applicable": true,
+      "note": "",
+      "critical_deviation": false
+    },
+    "stone_row_fidelity": {
+      "score": 0,
+      "applicable": true,
+      "note": "",
+      "critical_deviation": false
+    },
+    "prong_fidelity": {
+      "score": 0,
+      "applicable": true,
+      "note": "",
+      "critical_deviation": false
+    },
+    "inner_band_structural_fidelity": {
+      "score": 0,
+      "applicable": true,
+      "note": "",
+      "critical_deviation": false
+    },
+    "perspective_fidelity": {
+      "score": 0,
+      "applicable": true,
+      "note": "",
+      "critical_deviation": false
+    }
+  },
+  "critical_failures": []
+}

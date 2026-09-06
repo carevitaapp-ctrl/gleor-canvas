@@ -1,0 +1,102 @@
+GATE B — CATALOG VISUAL QUALITY ONLY
+
+Gate A has already passed. Assess the RENDERED OUTPUT's photographic quality. ORIGINAL INPUT is supplied only for material/color and stone-type context, never to repeat geometry/SKU checks. Do not score construction, symmetry, proportions, pavé boundaries, stone layout, rows, prong geometry, inner-band structure or perspective.
+Category: {{CATEGORY}}
+Declared metal type: {{METAL}}
+Gold appearance applicable: {{GOLD_HUE_APPLICABLE}} (if unknown, use the original image; uncertainty must not become a confident pass).
+
+Criteria:
+
+1. metal_color_fidelity — Compare metal color with the ORIGINAL INPUT and declared metal type. Preserve material identity and hue while allowing neutral photographic white-balance correction; reject brass/orange/green casts or material-category drift.
+2. metal_realism — Metal has realistic density, reflection gradients and polish, without plastic, painted or chrome-like artifacts.
+3. clean_light_premium_gold_appearance — For yellow or rose gold, assess clean, light premium gold without dirty, muddy, dark or excessive orange appearance; retain the correct gold identity. Not applicable to non-gold products.
+4. gemstone_clarity — Assess optical clarity and depth appropriate to the source stone type; do not demand transparent pearls or opaque stones to become transparent.
+5. gemstone_facet_definition — Assess readable natural facets for stones that are faceted in the source; do not invent facets on pearls or cabochons.
+6. stone_prong_visual_separation — Assess whether light and detail make existing stones and prongs visually distinguishable. Do not assess their count, shape, size or layout here.
+7. lighting_quality — Assess consistent, soft, diffused jewelry-studio lighting with readable form.
+8. highlight_quality — Assess controlled softbox reflections and retained highlight detail without glare or clipping.
+9. physically_plausible_contact_shadow — Assess a restrained shadow connected to the product; reject artificial blurred ovals, duplicated shadows and floating appearance.
+10. sharpness_without_oversharpening — Assess natural detail without blur, edge halos, ringing or crunchy sharpening.
+11. correct_product_scale — Assess whole-product size in the frame: neither excessive empty space nor a cramped presentation. Do not assess relative component sizes.
+12. framing — Assess optical centering, balanced padding and safe presentation without clipping by the output frame. Do not judge product pose or perspective.
+13. pure_white_background — Assess a uniform pure #FFFFFF background outside the product and legitimate contact shadow, without cast, texture or gradient.
+14. premium_jewelry_catalog_appearance — Assess overall photographic finish suitable for a premium jewelry catalog. This is a standalone criterion, not an average of other scores; do not assess SKU geometry.
+
+For every criterion return an integer score from 0 to 100, applicable=true, and a concise factual note. Unassessable or ambiguous evidence must score 0 with an explanation; do not infer a pass.
+Only gold appearance, gemstone clarity, facet definition and stone/prong visual separation may be applicable=false if physically inapplicable (non-gold, no stones, non-faceted stones or no prong setting respectively), with score=null and an explanatory note.
+Return ONLY a JSON object matching this shape. Replace all example scores and notes with your evaluation. Gate status and final approval are computed by code, never by averaging.
+
+{
+  "criteria": {
+    "metal_color_fidelity": {
+      "score": 0,
+      "applicable": true,
+      "note": ""
+    },
+    "metal_realism": {
+      "score": 0,
+      "applicable": true,
+      "note": ""
+    },
+    "clean_light_premium_gold_appearance": {
+      "score": 0,
+      "applicable": true,
+      "note": ""
+    },
+    "gemstone_clarity": {
+      "score": 0,
+      "applicable": true,
+      "note": ""
+    },
+    "gemstone_facet_definition": {
+      "score": 0,
+      "applicable": true,
+      "note": ""
+    },
+    "stone_prong_visual_separation": {
+      "score": 0,
+      "applicable": true,
+      "note": ""
+    },
+    "lighting_quality": {
+      "score": 0,
+      "applicable": true,
+      "note": ""
+    },
+    "highlight_quality": {
+      "score": 0,
+      "applicable": true,
+      "note": ""
+    },
+    "physically_plausible_contact_shadow": {
+      "score": 0,
+      "applicable": true,
+      "note": ""
+    },
+    "sharpness_without_oversharpening": {
+      "score": 0,
+      "applicable": true,
+      "note": ""
+    },
+    "correct_product_scale": {
+      "score": 0,
+      "applicable": true,
+      "note": ""
+    },
+    "framing": {
+      "score": 0,
+      "applicable": true,
+      "note": ""
+    },
+    "pure_white_background": {
+      "score": 0,
+      "applicable": true,
+      "note": ""
+    },
+    "premium_jewelry_catalog_appearance": {
+      "score": 0,
+      "applicable": true,
+      "note": ""
+    }
+  }
+}

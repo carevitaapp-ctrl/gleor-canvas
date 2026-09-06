@@ -1,0 +1,7 @@
+METAL: (unspecified — preserve exactly as seen in the input)
+
+The metal type could not be established by authoritative metadata, and Vision confidence was insufficient to assert a specific type. Preserve the metal's exact hue, tone, saturation, and reflectivity as it appears in the input.
+
+You must NOT reinterpret the metal into any specific type. If the input reads as pale gold, keep it pale gold — do not "correct" it toward yellow or rose. If the input reads as cool white, keep it cool white. If the input has a mixed or two-tone character, preserve every transition.
+
+Reflections and finish must match a polished catalog piece: soft studio softbox speculars, no CGI sheen, no plastic-looking uniform color, no over-dark shadows within the metal, no over-bright hotspots. The final metal appearance must be indistinguishable in hue from the input, only improved in photographic presentation.

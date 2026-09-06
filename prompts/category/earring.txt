@@ -1,0 +1,19 @@
+CATEGORY: EARRING
+
+Framing:
+- If the input contains a matched pair, keep the pair symmetrically presented.
+- If the input contains a single earring, render exactly that single earring — do NOT invent a matching pair.
+- Center the pair (or single piece) optically in the frame.
+- The earring(s) occupy approximately 40-60% of the frame area.
+
+Preserve exactly (SKU fidelity):
+- Drop length, hoop diameter, or stud footprint
+- Ear-wire style: French wire, lever-back, post-and-back, hoop, screw-back, threader — exactly as visible
+- Stone placement, orientation, and count
+- Any secondary details (dangles, chains, charms) exactly as shown
+
+Do not:
+- Change hoop diameter or drop length
+- Substitute the ear-wire mechanism
+- Add a second earring if the input shows only one
+- Introduce props or supports (hands, ear-form stands, jewelry busts)

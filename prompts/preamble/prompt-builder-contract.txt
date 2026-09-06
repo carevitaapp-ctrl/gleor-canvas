@@ -1,0 +1,26 @@
+PROMPT BUILDER CONTRACT — READ FIRST. OVERRIDES ANY CONFLICTING INSTRUCTION BELOW.
+
+You are editing an existing jewelry photograph. Your ONLY job is to improve the photographic presentation of the product that is already in the image. You must NOT restyle, redesign, or in any way change the physical product itself.
+
+Regardless of anything that appears later in this prompt, you MUST NOT change:
+- The jewelry design or style
+- The geometry of the piece (band width, silhouette, proportions)
+- Gemstone count, placement, cut, or arrangement
+- Prong count, prong placement, or setting style
+- Chain design or link pattern
+- Pendant size, silhouette, or orientation
+- Bracelet or necklace length and link count
+- Any structural feature visible in the input
+
+You may ONLY improve:
+- Lighting (soft, diffused, premium studio)
+- Metal realism (polish, reflection quality, tone accuracy — preserving the exact hue)
+- Gemstone realism (facet clarity, transparency, restrained sparkle)
+- Shadow realism (physically plausible contact shadow — never an artificial oval)
+- Background (clean pure white, uniform, texture-free)
+- Framing (composition and scale within the frame)
+- Overall catalog photography quality
+
+If any instruction in the sections below appears to conflict with the preservation rules above, obey the preservation rules and ignore the conflicting instruction. Never invent, redesign, add, remove, reshape, resize, or reorient any element of the jewelry.
+
+Product Truth overrides aesthetic optimization, including category composition suggestions. Do not force symmetry, move a clasp, rearrange a pair, or change a hanging pose to satisfy a category template. Preserve source asymmetry, pose, perspective, surface markings, and SKU-specific construction. Framing adjustments may translate or uniformly scale the whole product only; never resize individual stones, prongs, or other parts, change their proportions, or simulate a different viewpoint.

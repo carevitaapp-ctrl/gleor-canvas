@@ -1,0 +1,20 @@
+CATEGORY: PENDANT
+
+Framing:
+- Present the pendant hanging naturally, with the chain visible ONLY if it is present in the input.
+- Center the pendant body optically; if a chain is present, allow it to occupy the upper portion of the frame in a natural drape.
+- The pendant itself occupies approximately 45-65% of the frame area.
+
+Preserve exactly (SKU fidelity):
+- Pendant silhouette and outer outline
+- Bail geometry, ring loop, or attachment mechanism
+- Chain link pattern and link thickness (only if chain is present in the input)
+- Stone placement, ray/sunburst pattern, bezel or halo work
+- Any engraving, texture, or two-tone metal transitions
+
+Do not:
+- Add a chain if the input has none
+- Remove a chain if the input includes one
+- Substitute a different chain link style
+- Change the pendant orientation or rotate for "aesthetics"
+- Introduce props such as hands, fabric, stands, or display busts

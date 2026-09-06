@@ -1,0 +1,263 @@
+Create a premium ecommerce catalog photograph of the exact jewelry product shown in the input image.
+
+The input image is the sole product-truth reference.
+
+ABSOLUTE SKU FIDELITY
+
+Preserve the exact product identity and physical construction.
+
+Preserve exactly:
+- jewelry category
+- total gemstone count
+- gemstone sequence
+- gemstone colors
+- gemstone cuts
+- gemstone sizes
+- gemstone orientation
+- every prong and its position
+- band geometry
+- band thickness
+- openings
+- proportions
+- viewing angle
+- silhouette
+- metal color
+
+Do not add, remove, replace, relocate, enlarge or recolor any gemstone.
+Do not redesign, simplify, beautify or reinterpret any component.
+Do not invent settings, prongs, openings or metal details.
+
+Improve only the photographic presentation.
+
+CATALOG PHOTOGRAPHY
+
+Create the appearance of a professionally photographed and carefully retouched luxury jewelry product.
+
+The result must look photographic, not like CGI or an AI render.
+
+METAL
+
+- clean polished precious metal
+- preserve the original metal tone exactly
+- realistic metal density
+- controlled softbox reflections
+- smooth highlight transitions
+- retained highlight detail
+- crisp natural edge definition
+- realistic dark-to-light reflection gradients
+- no flat metal
+- no plastic appearance
+- no black outlines
+- no random dark patches
+- no blown highlights
+
+GEMSTONES
+
+Preserve the exact gemstone count, placement, size, cut and color.
+
+Improve only optical realism.
+
+Each gemstone must retain its original cut and surface under controlled studio lighting. Facet requirements apply only to stones that are faceted in the input.
+
+Requirements:
+
+- natural facet reflections
+- visible crown and table facets
+- subtle brightness variation between stones
+- realistic internal light return
+- natural optical depth
+- crisp facet edges
+- restrained sparkle
+- no uniform brightness
+- no glowing effect
+- no cloudy appearance
+- no plastic look
+- no glass-bead appearance
+- no oversaturation
+- no invented reflections
+
+MANUFACTURING DETAIL
+
+- every prong clearly defined
+- clean stone settings
+- precise metal junctions
+- realistic metal thickness
+- structurally possible construction
+- no melted metal
+- no fused prongs
+- no floating stones
+- no duplicated details
+- no warped symmetry
+
+INNER BAND
+
+The inner band must appear completely clean and premium.
+
+Preserve all visible hallmarks, karat stamps, logos, serial numbers, engravings and manufacturing marks that belong to the physical product.
+
+Improve photographic cleanliness without smoothing away physical surface details.
+
+Do not invent text, symbols, numbers or engravings inside the ring.
+
+Preserve the exact original inner band geometry while keeping it completely clean.
+
+LIGHTING
+
+Use premium diffused jewelry-studio lighting.
+
+- large softbox-style reflections
+- neutral studio illumination
+- controlled highlights
+- readable metal curvature
+- readable gemstone facets
+- no dramatic lighting
+- no colored environmental reflections
+- no harsh glare
+- no fantasy glow
+
+BACKGROUND
+
+Use a seamless pure white catalog background (#FFFFFF).
+
+- completely clean
+- uniform
+- texture-free
+- prop-free
+- no visible horizon
+- no grey cast
+- no blue cast
+- no background gradient
+
+SHADOW
+
+Create a subtle physically plausible contact shadow.
+
+- soft and restrained
+- directly connected to the product
+- sufficient only to prevent floating
+- no hard outline
+- no dark halo
+- no duplicated shadow
+- no artificial glow
+
+COMPOSITION
+
+- square ecommerce hero image
+- product optically centered
+- complete product visible
+- no crop
+- balanced negative space
+- preserve the natural viewing angle
+- maintain a premium catalog scale
+- do not zoom excessively
+
+APPARENT PRODUCT SCALE
+
+- preserve the exact apparent product scale from the input image
+- preserve the exact visual band width
+- do not enlarge gemstones
+- do not enlarge prongs
+- do not increase the apparent thickness of the ring
+- preserve the original visual proportions exactly
+
+GEOMETRY LOCK — ABSOLUTE
+
+The input product geometry is fixed and must not be reinterpreted.
+
+Preserve exactly:
+- apparent band width
+- top profile height
+- stone diameter
+- stone spacing
+- prong thickness
+- prong spacing
+- side taper
+- inner opening shape
+- outer silhouette
+- ring proportions
+- viewing angle
+
+Do not visually thicken or widen the ring.
+Do not increase the height of the pavé section.
+Do not enlarge, reduce or regularize the gemstones.
+Do not enlarge or round the prongs.
+Do not smooth, inflate or beautify the profile.
+Do not make the ring more symmetrical than the source.
+Do not change the apparent camera distance to alter product proportions.
+
+The final product must remain the same SKU, with only the photographic presentation improved.
+
+CAMERA LOCK
+
+Keep exactly the same camera viewpoint as the input image.
+
+Preserve the source orientation exactly, whether front, top, side, or three-quarter.
+
+Do not rotate the ring.
+
+Do not tilt the ring.
+
+Do not introduce a perspective different from the source.
+
+Do not change the optical camera angle.
+
+The final catalog image must match the original viewing direction exactly.
+
+Do not impose a new focal length or reinterpret the source perspective.
+
+Do not change camera distance.
+
+Do not zoom to improve composition.
+
+Do not crop tighter than the source image.
+
+Maintain identical framing across all catalog renders.
+
+CAMERA AND DETAIL
+
+- professional macro jewelry photography
+- natural perspective
+- focus-stacked clarity
+- sharp prongs, facets and metal edges
+- no artificial depth-of-field blur
+- no oversharpening halos
+
+COLOR
+
+- neutral accurate white balance
+- preserve the original metal color
+- faithful gemstone colors
+- controlled contrast
+- preserved highlight detail
+- preserved shadow detail
+- no yellow cast
+- no blue cast
+- no crushed blacks
+
+FINAL REQUIREMENT
+
+Produce a clean, realistic premium international ecommerce catalog photograph while preserving the exact SKU.
+
+REJECT ANY RESULT CONTAINING
+
+- changed gemstone count
+- changed gemstone order
+- changed gemstone colors
+- changed metal color
+- changed silhouette
+- changed proportions
+- changed band thickness
+- missing or invented prongs
+- warped geometry
+- melted metal
+- floating gemstones
+- invented or altered hallmarks
+- invented or altered engravings
+- invented or altered logos
+- invented or altered serial numbers
+- edge halos
+- excessive sharpening
+- added text overlays
+- watermark
+- props
+- additional jewelry

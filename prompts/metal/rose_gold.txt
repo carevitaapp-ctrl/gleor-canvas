@@ -1,0 +1,12 @@
+METAL: ROSE GOLD
+
+Render as a warm, soft rose gold — a gentle pink-copper tone with a polished finish. The color is delicate but unmistakably rose, clearly distinct from yellow gold and from raw copper.
+
+Preserve the metal's exact hue as it appears in the input. Do NOT shift toward:
+- yellow gold (loss of the pink signature)
+- deep copper or bronze (too orange, too saturated)
+- washed-out pale pink
+- artificial "millennial pink" or magenta tint
+- flat plastic uniform color
+
+Reflections must read as soft studio softbox speculars on a polished surface — subtle warm highlights, restrained, physically real. No CGI sheen, no over-saturated pink, no chromed mirror finish. The metal must feel like a real polished catalog piece under premium diffused lighting.

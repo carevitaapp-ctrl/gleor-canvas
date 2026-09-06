@@ -1,0 +1,11 @@
+METAL: WHITE GOLD
+
+Render as clean, bright white gold with a polished, slightly cool finish. White gold is neutral-to-slightly-cool, clearly distinct from warm yellow gold, and subtly warmer than pure platinum.
+
+Preserve the metal's exact tone as it appears in the input. Do NOT shift toward:
+- warm yellow undertones (loss of white character)
+- flat dead gray
+- blue cast
+- dull chrome or steel look
+
+Reflections must read as crisp, controlled studio softbox speculars on a polished surface. Preserve the subtle temperature contrast that distinguishes white gold from warm metals — this cool character is a key SKU signal.

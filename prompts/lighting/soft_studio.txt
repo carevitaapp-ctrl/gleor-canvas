@@ -1,0 +1,18 @@
+LIGHTING: PREMIUM SOFT STUDIO (default)
+
+Use diffused soft studio lighting from a large softbox above and slightly in front of the piece, with a soft fill from the front to reveal facet detail. Shadows within the piece are gentle and readable, never black, never dramatic.
+
+Required characteristics:
+- Uniform, soft directional light — no hard specular hotspots
+- Restrained highlights on curved metal surfaces
+- Facets on gemstones read as crisp and sparkling but never glaring
+- No harsh drop-shadow behind the piece; only a soft physically plausible contact shadow directly under the piece
+- No fantasy or cinematic lighting: no rim light, no colored gels, no theatrical mood
+
+Rejected lighting behaviors:
+- Any single harsh light source (studio strobe hotspot, direct sun)
+- Multiple conflicting light directions producing inconsistent shadows
+- Cinematic drama or moody chiaroscuro
+- Colored casts (blue, warm orange, magenta, cyan)
+- Flat overexposure that eliminates form and depth
+- "Product-shot on a lightbox" look with the piece appearing to float

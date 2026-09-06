@@ -1,0 +1,22 @@
+QA LOCK — DEFAULT
+
+The output image will be evaluated by an independent Claude Vision QA layer against SKU fidelity and catalog quality criteria. Any output failing the criteria below will be rejected. Producing an image that satisfies every point here is the primary success condition.
+
+MUST NOT appear in the output:
+- Plastic-looking metal (uniform painted color, no depth, no realistic reflection variation)
+- Dirty, dark, muddy, or overly warm gold tone
+- An artificial blurred oval shadow underneath the product (a common CGI failure mode)
+- Product appearing to float above the surface with no plausible contact shadow
+- Product too small in the frame relative to the category's expected fill percentage
+- Over-sharpening: halos around edges, crunchy micro-detail, ringing artifacts
+- Weak gemstone clarity: cloudy, opaque, plastic-bead-like stones
+- Inconsistent lighting: multiple conflicting light directions, mixed shadow directions, hard shadows
+
+MUST appear in the output:
+- Realistic, luxury-catalog metal rendering with plausible reflection variation
+- Premium soft studio lighting — diffused, uniform, directional but not harsh
+- Physically plausible contact shadow that directly connects the product to the surface — soft and natural, never an oval halo
+- Correct product scale for the category (see the category insert)
+- Clean pure white background at #FFFFFF, uniform and free of texture, gradient, or cast
+- Sharp but natural detail — no oversharpen halos, no crunchy micro-detail
+- SKU fidelity: exact preservation of every visible product feature — gemstone count, prong count, band width, chain link pattern, silhouette, orientation, proportions
