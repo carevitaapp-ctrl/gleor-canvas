@@ -7,12 +7,12 @@
 const { OpenAI, toFile } = require('openai');
 const { MODELS, GPT_IMAGE_SIZE, GPT_IMAGE_QUALITY } = require('./constants');
 
-async function runGptImageEdit({ imageBuffer, imageFilename, imageMediaType, prompt, openaiKey }) {
+async function runGptImageEdit({ imageBuffer, imageFilename, imageMediaType, prompt, openaiKey, maxRetries }) {
   if (!openaiKey) throw new Error('runGptImageEdit: openaiKey required');
   if (!Buffer.isBuffer(imageBuffer)) throw new Error('runGptImageEdit: imageBuffer must be a Buffer');
   if (!prompt || typeof prompt !== 'string') throw new Error('runGptImageEdit: prompt required');
 
-  const client = new OpenAI({ apiKey: openaiKey });
+  const client = new OpenAI({ apiKey: openaiKey, ...(maxRetries === 0 ? { maxRetries: 0 } : {}) });
   const inputName = imageFilename || 'input.jpg';
   const mediaType = imageMediaType || 'image/jpeg';
   const imageFile = await toFile(imageBuffer, inputName, { type: mediaType });

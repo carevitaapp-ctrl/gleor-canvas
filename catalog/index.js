@@ -14,9 +14,10 @@ const { writeInputs, writeBundle, sha256 } = require('./writer');
 const { readCatalogRequest, validateInputs } = require('./inputContract');
 const { PIPELINE_VERSION, MAX_RETRIES, MODELS } = require('./constants');
 
-async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, anthropicKey, openaiKey }) {
+async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, anthropicKey, openaiKey, retryLimit = MAX_RETRIES }) {
   // No provider-capable module is loaded until V2 input validation and immutable
   // persistence succeed. RAW is the sole structural authority; Clean is derived.
+  if (![0, MAX_RETRIES].includes(retryLimit)) throw Object.assign(new Error('Invalid catalog retry limit'), { statusCode: 400 });
   const inputs = await validateInputs({ originalRaw, masterClean, inputManifest });
   if (!anthropicKey) throw new Error('runCatalogPipeline: anthropicKey required');
   if (!openaiKey)    throw new Error('runCatalogPipeline: openaiKey required');
@@ -56,6 +57,7 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ant
     imageMediaType: clean.mediaType,
     prompt: promptText,
     openaiKey,
+    ...(retryLimit === 0 ? { maxRetries: 0 } : {}),
   });
 
   let qaResult = await runCatalogQA({
@@ -68,7 +70,7 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ant
 
   // One retry pass if verdict is 'retry'.
   let retryCount = 0;
-  if (qaResult.verdict.value === 'retry' && MAX_RETRIES >= 1) {
+  if (qaResult.verdict.value === 'retry' && retryLimit >= 1) {
     retry = true;
     retryCount = 1;
     promptText = buildPrompt({ truth: ptResult.truth, retry: true });
@@ -97,6 +99,10 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ant
     }
   }
 
+  if (qaResult.verdict.value === 'retry' && retryLimit === 0) {
+    qaResult.verdict = { ...qaResult.verdict, value: 'manual_review', promoted_from_retry: true };
+  }
+
   const finishedAt = new Date();
 
   const qaReport = {
@@ -119,6 +125,7 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ant
       total_ms:    finishedAt.getTime() - startedAt.getTime(),
     },
     retry_count: retryCount,
+    retry_limit: retryLimit,
     verdict: qaResult.verdict.value,
     final_approval: qaResult.final_approval,
     stages: {
@@ -211,9 +218,14 @@ function fallbackSku(imageBuffer) {
 function createHandler({ anthropicKeyEnv = 'ANTHROPIC_API_KEY', openaiKeyEnv = 'OPENAI_API_KEY' } = {}) {
   return async function catalogHandler(req, res) {
     try {
+      const retryHeader = req.headers?.['x-catalog-retry-limit'];
+      if (retryHeader !== undefined && retryHeader !== '0') {
+        return res.status(400).json({ error: 'X-Catalog-Retry-Limit must be 0 when supplied' });
+      }
       const requestInputs = readCatalogRequest(req);
       const result = await runCatalogPipeline({
         ...requestInputs,
+        retryLimit: retryHeader === '0' ? 0 : MAX_RETRIES,
         anthropicKey: process.env[anthropicKeyEnv],
         openaiKey: process.env[openaiKeyEnv],
       });
@@ -228,6 +240,8 @@ function createHandler({ anthropicKeyEnv = 'ANTHROPIC_API_KEY', openaiKeyEnv = '
         bundle_dir: result.bundle.dir,
         pipeline_version: PIPELINE_VERSION,
         input_contract_version: 2,
+        retry_count: result.finalMetadata.retry_count,
+        retry_limit: result.finalMetadata.retry_limit,
         inputs: result.inputAssets,
       });
     } catch (err) {

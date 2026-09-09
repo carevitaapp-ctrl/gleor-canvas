@@ -305,3 +305,53 @@ test('assembled production prompts preserve SKU for normal and retry passes', ()
     assert.match(prompt, /#FFFFFF/);
   }
 });
+
+
+test('zero retry budget performs one render and routes presentation failure to review', async () => {
+  const b = response('B'); b.criteria.framing.score = 0;
+  const h = pipelineHarness([response('A'), b]);
+  const result = await h.runCatalogPipeline({ ...pipelineInput, retryLimit: 0 });
+  assert.equal(h.candidates(), 1);
+  assert.equal(h.requests.length, 2);
+  assert.equal(result.verdict.value, 'manual_review');
+  assert.equal(result.final_approval, false);
+  assert.equal(result.finalMetadata.retry_count, 0);
+  assert.equal(result.finalMetadata.retry_limit, 0);
+});
+
+test('single attempt renderer disables SDK transport retries', async () => {
+  let options;
+  const { runGptImageEdit } = load('catalog/gptImageEdit.js', {
+    './constants': constants,
+    openai: {
+      OpenAI: class { constructor(config) { options = config; this.images = { edit: async () => ({ data: [{ b64_json: 'eA==' }] }) }; } },
+      toFile: async () => ({}),
+    },
+  });
+  await runGptImageEdit({ imageBuffer: Buffer.from('input'), prompt: 'test', openaiKey: 'offline', maxRetries: 0 });
+  assert.equal(options.maxRetries, 0);
+});
+
+
+test('HTTP zero retry header is honored and other values fail before providers', async () => {
+  const b = response('B'); b.criteria.framing.score = 0;
+  const h = pipelineHarness([response('A'), b]);
+  let status, body;
+  const res = { status(code) { status = code; return this; }, json(data) { body = data; return this; } };
+  await h.createHandler()({ headers: { 'x-catalog-retry-limit': '1' } }, res);
+  assert.equal(status, 400);
+  assert.equal(h.candidates(), 0);
+  await h.createHandler()({
+    headers: { 'x-catalog-retry-limit': '0' },
+    files: {
+      original_raw: [{ fieldname: 'original_raw', buffer: input.originalBuffer, originalname: 'offline.png' }],
+      master_clean_png: [{ fieldname: 'master_clean_png', buffer: cleanMarker, originalname: 'master-clean.png' }],
+    },
+    body: { input_manifest: JSON.stringify(pipelineInput.inputManifest) },
+  }, res);
+  assert.equal(status, 200);
+  assert.equal(h.candidates(), 1);
+  assert.equal(body.retry_count, 0);
+  assert.equal(body.retry_limit, 0);
+  assert.equal(body.verdict, 'manual_review');
+});
