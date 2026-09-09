@@ -543,8 +543,8 @@ app.post('/hero-a', upload.single('image'), (req, res) => heroVariantHandler('A'
 app.post('/hero-b', upload.single('image'), (req, res) => heroVariantHandler('B', req, res));
 app.post('/hero-c', upload.single('image'), (req, res) => heroVariantHandler('C', req, res));
 
-// --- Catalog Pipeline (P0-P7) — GPT Image edit + Claude Vision QA ---
-// Reads ANTHROPIC_API_KEY and OPENAI_API_KEY from process env. Independent of
+// --- Catalog Pipeline (P0-P7) — GPT Image edit + OpenAI Vision QA ---
+// Reads OPENAI_API_KEY from process env. Independent of
 // the legacy /hero and Hero Engine v7 endpoints — shares no code path.
 const catalog = require('./catalog');
 // BREAKING Input Contract V2: migrate ALL /catalog callers (n8n if applicable)

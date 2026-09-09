@@ -10,14 +10,14 @@ const crypto = require('node:crypto');
 const root = path.resolve(__dirname, '..');
 const constants = require('../catalog/constants');
 const { QA_LAYER_A_CRITERIA: A, QA_LAYER_B_CRITERIA: B, QA_THRESHOLDS: floors } = constants;
-const input = { originalBuffer: Buffer.from('source-marker'), finalBuffer: Buffer.from('candidate-marker'), anthropicKey: 'offline-placeholder', truth: {} };
+const input = { originalBuffer: Buffer.from('source-marker'), finalBuffer: Buffer.from('candidate-marker'), openaiKey: 'offline-placeholder', truth: {} };
 
 function load(relative, allowed) {
   const filename = path.join(root, relative);
   const module = { exports: {} };
   vm.runInNewContext(fs.readFileSync(filename, 'utf8'), {
     module, exports: module.exports, __dirname: path.dirname(filename), Buffer, Date,
-    process: { env: { ANTHROPIC_API_KEY: 'offline-placeholder', OPENAI_API_KEY: 'offline-placeholder' } },
+    process: { env: { OPENAI_API_KEY: 'offline-placeholder' } },
     console,
     require(name) {
       if (!Object.hasOwn(allowed, name)) throw new Error(`Forbidden dependency in offline test: ${name}`);
@@ -43,12 +43,15 @@ function harness(responses) {
   const events = [];
   const fakeHttps = {
     request(options, callback) {
+      assert.equal(options.hostname, 'api.openai.com');
+      assert.equal(options.path, '/v1/responses');
       const index = requests.length;
       assert.ok(index < responses.length, 'Unexpected extra evaluator request');
       let body = '';
       requests.push(null);
       events.push(`start-${index}`);
       const req = new EventEmitter();
+      req.setTimeout = () => req;
       req.write = chunk => { body += chunk; };
       req.end = () => queueMicrotask(() => {
         requests[index] = JSON.parse(body);
@@ -57,7 +60,7 @@ function harness(responses) {
         callback(res);
         const reply = responses[index];
         res.emit('data', Buffer.from(JSON.stringify({
-          content: [{ type: 'text', text: typeof reply === 'string' ? reply : JSON.stringify(reply) }],
+          status: 'completed', output: [{ type: 'message', role: 'assistant', status: 'completed', content: [{ type: 'output_text', text: typeof reply === 'string' ? reply : JSON.stringify(reply) }] }],
           model: 'offline-fixture', usage: { input_tokens: 0, output_tokens: 0 },
         })));
         events.push(`complete-${index}`);
@@ -66,7 +69,8 @@ function harness(responses) {
       return req;
     },
   };
-  const qa = load('catalog/catalogQA.js', { https: fakeHttps, fs, path, './constants': constants });
+  const analysis = load('catalog/openaiAnalysis.js', { https: fakeHttps, './analysisSchemas': require('../catalog/analysisSchemas'), './constants': constants });
+  const qa = load('catalog/catalogQA.js', { './openaiAnalysis': analysis, fs, path, './constants': constants });
   return { ...qa, requests, events };
 }
 
@@ -86,9 +90,9 @@ test('A completes before B starts; B receives color reference; both gates approv
   assert.equal(result.gate_a.status, 'PASS');
   assert.equal(result.gate_b.status, 'PASS');
   assert.deepEqual(h.events, ['start-0', 'complete-0', 'start-1', 'complete-1']);
-  const images = h.requests[1].messages[0].content.filter(c => c.type === 'image');
-  assert.equal(images[0].source.data, input.originalBuffer.toString('base64'));
-  assert.equal(images[1].source.data, input.finalBuffer.toString('base64'));
+  const images = h.requests[1].input[0].content.filter(c => c.type === 'input_image');
+  assert.equal(images[0].image_url, 'data:image/jpeg;base64,' + input.originalBuffer.toString('base64'));
+  assert.equal(images[1].image_url, 'data:image/png;base64,' + input.finalBuffer.toString('base64'));
   assert.equal('overall' in result.verdict, false);
 });
 
@@ -230,7 +234,7 @@ const pipelineInput = {
     original_raw: { sha256: digest(input.originalBuffer) },
     master_clean_png: { sha256: digest(cleanMarker), source_raw_sha256: digest(input.originalBuffer) },
   },
-  anthropicKey: 'offline-placeholder', openaiKey: 'offline-placeholder',
+  openaiKey: 'offline-placeholder',
 };
 
 test('A FAIL reaches report, metadata and manual routing without retry or phantom B usage', async () => {

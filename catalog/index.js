@@ -5,8 +5,8 @@
 // 'retry' verdict is promoted to 'manual_review' (no infinite loop).
 //
 // Exports:
-//   runCatalogPipeline({ originalRaw, masterClean, inputManifest, anthropicKey, openaiKey })
-//   createHandler({ anthropicKeyEnv, openaiKeyEnv })  → Express handler
+//   runCatalogPipeline({ originalRaw, masterClean, inputManifest, openaiKey })
+//   createHandler({ openaiKeyEnv })  → Express handler
 
 const { parseFilename }   = require('./metadataParser');
 const { buildPrompt, resolveLayers } = require('./promptBuilder');
@@ -14,12 +14,11 @@ const { writeInputs, writeBundle, sha256 } = require('./writer');
 const { readCatalogRequest, validateInputs } = require('./inputContract');
 const { PIPELINE_VERSION, MAX_RETRIES, MODELS } = require('./constants');
 
-async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, anthropicKey, openaiKey, retryLimit = MAX_RETRIES }) {
+async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, openaiKey, retryLimit = MAX_RETRIES }) {
   // No provider-capable module is loaded until V2 input validation and immutable
   // persistence succeed. RAW is the sole structural authority; Clean is derived.
   if (![0, MAX_RETRIES].includes(retryLimit)) throw Object.assign(new Error('Invalid catalog retry limit'), { statusCode: 400 });
   const inputs = await validateInputs({ originalRaw, masterClean, inputManifest });
-  if (!anthropicKey) throw new Error('runCatalogPipeline: anthropicKey required');
   if (!openaiKey)    throw new Error('runCatalogPipeline: openaiKey required');
   const inputAssets = writeInputs(inputs);
   const raw = inputs.originalRaw;
@@ -35,14 +34,14 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ant
   const fm = parseFilename(filename || '');
   const sku = fm.sku || fallbackSku(raw.buffer);
 
-  // Stage 3 — Product Truth (Claude Vision).
+  // Stage 3 — Product Truth (OpenAI Vision).
   const ptStart = Date.now();
   const ptResult = await runProductTruth({
     imageBuffer: Buffer.from(raw.buffer),
     imageMediaType: mediaType,
     sku,
     filenameMetadata: fm,
-    anthropicKey,
+    openaiKey,
   });
   const ptDuration = Date.now() - ptStart;
 
@@ -65,7 +64,7 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ant
     originalMediaType: mediaType,
     finalBuffer: gieResult.pngBuffer,
     truth: ptResult.truth,
-    anthropicKey,
+    openaiKey,
   });
 
   // One retry pass if verdict is 'retry'.
@@ -87,7 +86,7 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ant
       originalMediaType: mediaType,
       finalBuffer: gieResult.pngBuffer,
       truth: ptResult.truth,
-      anthropicKey,
+      openaiKey,
     });
     // After the retry pass, 'retry' is no longer available — promote to manual_review.
     if (qaResult.verdict.value === 'retry') {
@@ -222,7 +221,7 @@ function fallbackSku(imageBuffer) {
 }
 
 // Express handler factory. Mounted by server.js at POST /catalog.
-function createHandler({ anthropicKeyEnv = 'ANTHROPIC_API_KEY', openaiKeyEnv = 'OPENAI_API_KEY' } = {}) {
+function createHandler({ openaiKeyEnv = 'OPENAI_API_KEY' } = {}) {
   return async function catalogHandler(req, res) {
     try {
       const artifactHeader = req.headers?.['x-catalog-include-artifacts'];
@@ -237,7 +236,6 @@ function createHandler({ anthropicKeyEnv = 'ANTHROPIC_API_KEY', openaiKeyEnv = '
       const result = await runCatalogPipeline({
         ...requestInputs,
         retryLimit: retryHeader === '0' ? 0 : MAX_RETRIES,
-        anthropicKey: process.env[anthropicKeyEnv],
         openaiKey: process.env[openaiKeyEnv],
       });
 

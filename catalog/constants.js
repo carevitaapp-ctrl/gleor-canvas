@@ -146,11 +146,14 @@ const QA_RETRY_ELIGIBLE_CRITERIA = new Set([
   'correct_product_scale',
 ]);
 
+// Analysis defaults are a low-cost candidate, pending a live visual-quality benchmark.
+// Explicit nano/mini overrides never change prompts, thresholds or retry policy.
 // Model IDs.
 const MODELS = {
-  productTruth: 'claude-opus-4-7',
-  qa:           'claude-sonnet-4-6',
+  productTruth: process.env.CATALOG_PRODUCT_TRUTH_MODEL || 'gpt-5.4-nano',
+  qa:           process.env.CATALOG_QA_MODEL || 'gpt-5.4-nano',
   gptImage:     'gpt-image-2',
+  analysisAllowed: ['gpt-5.4-nano', 'gpt-5.4-mini'],
 };
 
 // GPT Image parameters (locked at plan defaults; no upscaling / Sharp visual ops downstream).

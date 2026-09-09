@@ -1,6 +1,6 @@
 // catalog/metadataParser.js
 // Stage 2 — extract authoritative fields from filename.
-// Priority (locked per approved plan): filename > product metadata > Claude Vision > unknown.
+// Priority (locked per approved plan): filename > product metadata > OpenAI Vision > unknown.
 // Any field returned here with source='filename' is authoritative and must not be
 // overwritten by Product Truth (Stage 3).
 

@@ -1,6 +1,6 @@
 QA LOCK — DEFAULT
 
-The output image will be evaluated by an independent Claude Vision QA layer against SKU fidelity and catalog quality criteria. Any output failing the criteria below will be rejected. Producing an image that satisfies every point here is the primary success condition.
+The output image will be evaluated by an independent vision QA layer against SKU fidelity and catalog quality criteria. Any output failing the criteria below will be rejected. Producing an image that satisfies every point here is the primary success condition.
 
 MUST NOT appear in the output:
 - Plastic-looking metal (uniform painted color, no depth, no realistic reflection variation)

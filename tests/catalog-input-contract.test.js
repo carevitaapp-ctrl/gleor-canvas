@@ -18,7 +18,7 @@ function load(relative, allowed, onRequire = () => {}) {
   const module = { exports: {} };
   vm.runInNewContext(fs.readFileSync(filename, 'utf8'), {
     module, exports: module.exports, __dirname: path.dirname(filename), Buffer, Date,
-    process: { env: { ANTHROPIC_API_KEY: 'offline-placeholder', OPENAI_API_KEY: 'offline-placeholder' } },
+    process: { env: { OPENAI_API_KEY: 'offline-placeholder' } },
     console: { log() {}, error() {} },
     require(name) {
       if (!Object.hasOwn(allowed, name)) throw new Error(`Forbidden dependency: ${name}`);
@@ -40,7 +40,7 @@ function fixture() {
       original_raw: { sha256: sha256(raw) },
       master_clean_png: { sha256: sha256(clean), source_raw_sha256: sha256(raw) },
     },
-    anthropicKey: 'offline-placeholder', openaiKey: 'offline-placeholder',
+    openaiKey: 'offline-placeholder',
   };
 }
 

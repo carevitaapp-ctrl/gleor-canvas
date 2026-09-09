@@ -1,5 +1,5 @@
 // Stage 6: Gate A must pass before Gate B runs. No combined approval score.
-const https = require('https');
+const { runAnalysis, imageInput } = require('./openaiAnalysis');
 const fs = require('fs');
 const path = require('path');
 
@@ -16,65 +16,65 @@ const {
 const LAYER_A_PROMPT_PATH = path.join(__dirname, '..', 'prompts', 'qa', 'sku-fidelity.txt');
 const LAYER_B_PROMPT_PATH = path.join(__dirname, '..', 'prompts', 'qa', 'catalog-quality.txt');
 
-async function runCatalogQA({ originalBuffer, originalMediaType, finalBuffer, truth, anthropicKey }) {
-  if (!anthropicKey) throw new Error('runCatalogQA: anthropicKey required');
+async function runCatalogQA({ originalBuffer, originalMediaType, finalBuffer, truth, openaiKey }) {
+  if (!openaiKey) throw new Error('runCatalogQA: openaiKey required');
   if (!Buffer.isBuffer(originalBuffer)) throw new Error('runCatalogQA: originalBuffer must be a Buffer');
   if (!Buffer.isBuffer(finalBuffer)) throw new Error('runCatalogQA: finalBuffer must be a Buffer');
 
-  const gate_a = await runLayerA({ originalBuffer, originalMediaType, finalBuffer, truth, anthropicKey });
+  const gate_a = await runLayerA({ originalBuffer, originalMediaType, finalBuffer, truth, openaiKey });
   const gate_b = gate_a.status === 'PASS'
-    ? await runLayerB({ originalBuffer, originalMediaType, finalBuffer, truth, anthropicKey })
+    ? await runLayerB({ originalBuffer, originalMediaType, finalBuffer, truth, openaiKey })
     : { status: 'NOT_RUN', criteria: {}, failures: [], model: null, usage: null, durationMs: 0 };
   const final_approval = gate_a.status === 'PASS' && gate_b.status === 'PASS';
   return { gate_a, gate_b, final_approval, verdict: decideVerdict(gate_a, gate_b) };
 }
 
-async function runLayerA({ originalBuffer, originalMediaType, finalBuffer, truth, anthropicKey }) {
+async function runLayerA({ originalBuffer, originalMediaType, finalBuffer, truth, openaiKey }) {
   const template = fs.readFileSync(LAYER_A_PROMPT_PATH, 'utf8');
   const promptText = injectTruthContext(template, truth);
-  const body = JSON.stringify({
-    model: MODELS.qa,
-    max_tokens: 3000,
-    temperature: 0,
-    messages: [{
-      role: 'user',
-      content: [
-        { type: 'text', text: 'ORIGINAL INPUT:' },
-        { type: 'image', source: { type: 'base64', media_type: originalMediaType || 'image/jpeg', data: originalBuffer.toString('base64') } },
-        { type: 'text', text: 'RENDERED OUTPUT:' },
-        { type: 'image', source: { type: 'base64', media_type: 'image/png', data: finalBuffer.toString('base64') } },
-        { type: 'text', text: promptText },
-      ],
-    }],
-  });
   const started = Date.now();
-  const { text, usage, model } = await callAnthropic(body, anthropicKey);
-  const durationMs = Date.now() - started;
-  return { ...parseGate(text, 'A', truth), usage, model, durationMs };
+  let result;
+  try {
+    result = await runAnalysis({
+      openaiKey, model: MODELS.qa, schemaName: 'gate_a',
+      content: [
+        { type: 'input_text', text: 'ORIGINAL INPUT:' },
+        imageInput(originalBuffer, originalMediaType || 'image/jpeg'),
+        { type: 'input_text', text: 'RENDERED OUTPUT:' },
+        imageInput(finalBuffer, 'image/png'),
+        { type: 'input_text', text: promptText },
+      ],
+    });
+  } catch (err) {
+    if (err.code !== 'INVALID_ANALYSIS_OUTPUT') throw err;
+    // Preserve the existing malformed-evaluator FAIL / NOT_RUN routing.
+    result = { text: '', model: MODELS.qa, usage: null };
+  }
+  return { ...parseGate(result.text, 'A', truth), usage: result.usage, model: result.model, durationMs: Date.now() - started };
 }
 
-async function runLayerB({ originalBuffer, originalMediaType, finalBuffer, truth, anthropicKey }) {
+async function runLayerB({ originalBuffer, originalMediaType, finalBuffer, truth, openaiKey }) {
   const template = fs.readFileSync(LAYER_B_PROMPT_PATH, 'utf8');
   const promptText = injectTruthContext(template, truth);
-  const body = JSON.stringify({
-    model: MODELS.qa,
-    max_tokens: 3000,
-    temperature: 0,
-    messages: [{
-      role: 'user',
-      content: [
-        { type: 'text', text: 'ORIGINAL INPUT (material/color context only):' },
-        { type: 'image', source: { type: 'base64', media_type: originalMediaType || 'image/jpeg', data: originalBuffer.toString('base64') } },
-        { type: 'text', text: 'RENDERED OUTPUT (evaluate catalog quality):' },
-        { type: 'image', source: { type: 'base64', media_type: 'image/png', data: finalBuffer.toString('base64') } },
-        { type: 'text', text: promptText },
-      ],
-    }],
-  });
   const started = Date.now();
-  const { text, usage, model } = await callAnthropic(body, anthropicKey);
-  const durationMs = Date.now() - started;
-  return { ...parseGate(text, 'B', truth), usage, model, durationMs };
+  let result;
+  try {
+    result = await runAnalysis({
+      openaiKey, model: MODELS.qa, schemaName: 'gate_b',
+      content: [
+        { type: 'input_text', text: 'ORIGINAL INPUT (material/color context only):' },
+        imageInput(originalBuffer, originalMediaType || 'image/jpeg'),
+        { type: 'input_text', text: 'RENDERED OUTPUT (evaluate catalog quality):' },
+        imageInput(finalBuffer, 'image/png'),
+        { type: 'input_text', text: promptText },
+      ],
+    });
+  } catch (err) {
+    if (err.code !== 'INVALID_ANALYSIS_OUTPUT') throw err;
+    // Preserve the existing malformed-evaluator FAIL / NOT_RUN routing.
+    result = { text: '', model: MODELS.qa, usage: null };
+  }
+  return { ...parseGate(result.text, 'B', truth), usage: result.usage, model: result.model, durationMs: Date.now() - started };
 }
 
 function injectTruthContext(template, truth) {
@@ -89,37 +89,6 @@ function injectTruthContext(template, truth) {
     .replaceAll('{{METAL}}', metal)
     .replaceAll('{{GOLD_HUE_APPLICABLE}}', goldRelevant ? 'yes' : (metal === 'unspecified' ? 'unknown' : 'no'))
     .replaceAll('{{GEMSTONE_COUNT}}', gemCount);
-}
-
-function callAnthropic(bodyStr, anthropicKey) {
-  return new Promise((resolve, reject) => {
-    const req = https.request({
-      hostname: 'api.anthropic.com',
-      path: '/v1/messages',
-      method: 'POST',
-      headers: {
-        'x-api-key': anthropicKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-        'content-length': Buffer.byteLength(bodyStr),
-      },
-    }, (res) => {
-      const chunks = [];
-      res.on('data', c => chunks.push(c));
-      res.on('end', () => {
-        const raw = Buffer.concat(chunks).toString('utf8');
-        if (res.statusCode >= 400) return reject(new Error(`Anthropic QA ${res.statusCode}: ${raw}`));
-        try {
-          const parsed = JSON.parse(raw);
-          const text = (parsed.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
-          resolve({ text, usage: parsed.usage, model: parsed.model });
-        } catch (e) { reject(e); }
-      });
-    });
-    req.on('error', reject);
-    req.write(bodyStr);
-    req.end();
-  });
 }
 
 // Invalid, incomplete or uncertain evaluator responses cannot approve a candidate.

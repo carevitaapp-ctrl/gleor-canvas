@@ -1,9 +1,9 @@
 // catalog/productTruth.js
-// Stage 3 — Claude Vision analysis, produces 17-field Product Truth JSON.
+// Stage 3 — OpenAI Vision analysis, produces 17-field Product Truth JSON.
 // Analysis only, never redesign. Filename-derived fields injected pre-call and
 // re-asserted post-call so Vision can never overwrite authoritative metadata.
 
-const https = require('https');
+const { runAnalysis, imageInput } = require('./openaiAnalysis');
 const fs = require('fs');
 const path = require('path');
 
@@ -23,29 +23,17 @@ const HALLMARK_REGIONS = ['inner_band', 'back', 'clasp', 'other'];
 const CLEANUP_TYPES = ['dust', 'scratch', 'fingerprint', 'glue', 'thread', 'reflection_artifact'];
 const SUPPORT_TYPES = ['hand', 'stand', 'display', 'prop', 'paper', 'other'];
 
-async function runProductTruth({ imageBuffer, imageMediaType, sku, filenameMetadata, anthropicKey }) {
-  if (!anthropicKey) throw new Error('runProductTruth: anthropicKey is required');
+async function runProductTruth({ imageBuffer, imageMediaType, sku, filenameMetadata, openaiKey }) {
+  if (!openaiKey) throw new Error('runProductTruth: openaiKey is required');
   if (!Buffer.isBuffer(imageBuffer)) throw new Error('runProductTruth: imageBuffer must be a Buffer');
 
   const systemPrompt = fs.readFileSync(SYSTEM_PROMPT_PATH, 'utf8');
   const userText = buildUserMessage(filenameMetadata);
 
-  const body = JSON.stringify({
-    model: MODELS.productTruth,
-    max_tokens: 2000,
-    temperature: 0,
-    system: systemPrompt,
-    messages: [{
-      role: 'user',
-      content: [
-        { type: 'image', source: { type: 'base64', media_type: imageMediaType, data: imageBuffer.toString('base64') } },
-        { type: 'text', text: userText },
-      ],
-    }],
+  const { json: visionJson, usage, model } = await runAnalysis({
+    openaiKey, model: MODELS.productTruth, schemaName: 'product_truth', instructions: systemPrompt,
+    content: [imageInput(imageBuffer, imageMediaType), { type: 'input_text', text: userText }],
   });
-
-  const { text, usage, model } = await callAnthropic(body, anthropicKey);
-  const visionJson = parseVisionOutput(text);
   const truth = assembleProductTruth({ sku, filenameMetadata, visionJson });
   return { truth, usage, model };
 }
@@ -59,47 +47,6 @@ function buildUserMessage(fm) {
     ? `Authoritative filename metadata (must not be contradicted):\n- ${known.join('\n- ')}\n\n`
     : `No authoritative filename metadata provided.\n\n`;
   return knownBlock + `Analyze the image and return ONLY the JSON object described in the system prompt.`;
-}
-
-function callAnthropic(bodyStr, anthropicKey) {
-  return new Promise((resolve, reject) => {
-    const req = https.request({
-      hostname: 'api.anthropic.com',
-      path: '/v1/messages',
-      method: 'POST',
-      headers: {
-        'x-api-key': anthropicKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-        'content-length': Buffer.byteLength(bodyStr),
-      },
-    }, (res) => {
-      const chunks = [];
-      res.on('data', c => chunks.push(c));
-      res.on('end', () => {
-        const raw = Buffer.concat(chunks).toString('utf8');
-        if (res.statusCode >= 400) return reject(new Error(`Anthropic ${res.statusCode}: ${raw}`));
-        try {
-          const parsed = JSON.parse(raw);
-          const text = (parsed.content || [])
-            .filter(b => b.type === 'text')
-            .map(b => b.text)
-            .join('\n');
-          resolve({ text, usage: parsed.usage, model: parsed.model });
-        } catch (e) { reject(e); }
-      });
-    });
-    req.on('error', reject);
-    req.write(bodyStr);
-    req.end();
-  });
-}
-
-function parseVisionOutput(text) {
-  const start = text.indexOf('{');
-  const end = text.lastIndexOf('}');
-  if (start < 0 || end < 0) throw new Error(`Product Truth: no JSON object in Vision response`);
-  return JSON.parse(text.slice(start, end + 1));
 }
 
 function assembleProductTruth({ sku, filenameMetadata, visionJson }) {
