@@ -286,6 +286,7 @@ test('HTTP handler propagates the explicit gate contract', async () => {
   assert.equal(body.gate_b.status, 'PASS');
   assert.equal(body.final_approval, true);
   assert.equal('overall' in body, false);
+  assert.equal('artifacts' in body, false);
 });
 
 test('assembled production prompts preserve SKU for normal and retry passes', () => {
@@ -342,7 +343,7 @@ test('HTTP zero retry header is honored and other values fail before providers',
   assert.equal(status, 400);
   assert.equal(h.candidates(), 0);
   await h.createHandler()({
-    headers: { 'x-catalog-retry-limit': '0' },
+    headers: { 'x-catalog-retry-limit': '0', 'x-catalog-include-artifacts': '1' },
     files: {
       original_raw: [{ fieldname: 'original_raw', buffer: input.originalBuffer, originalname: 'offline.png' }],
       master_clean_png: [{ fieldname: 'master_clean_png', buffer: cleanMarker, originalname: 'master-clean.png' }],
@@ -354,4 +355,7 @@ test('HTTP zero retry header is honored and other values fail before providers',
   assert.equal(body.retry_count, 0);
   assert.equal(body.retry_limit, 0);
   assert.equal(body.verdict, 'manual_review');
+  assert.equal(crypto.createHash('sha256').update(Buffer.from(body.artifacts.render_candidate_base64, 'base64')).digest('hex'), body.artifacts.final_metadata.hashes.render_candidate_sha256);
+  assert.equal(body.artifacts.qa_report.final_approval, false);
+  assert.equal(body.artifacts.final_metadata.retry_count, 0);
 });

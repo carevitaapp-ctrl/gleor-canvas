@@ -202,6 +202,13 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ant
     inputAssets,
     productTruth: ptResult.truth,
     finalMetadata,
+    artifacts: {
+      render_candidate_base64: gieResult.pngBuffer.toString('base64'),
+      product_truth: ptResult.truth,
+      prompt: promptText,
+      qa_report: qaReport,
+      final_metadata: finalMetadata,
+    },
   };
 }
 
@@ -218,6 +225,10 @@ function fallbackSku(imageBuffer) {
 function createHandler({ anthropicKeyEnv = 'ANTHROPIC_API_KEY', openaiKeyEnv = 'OPENAI_API_KEY' } = {}) {
   return async function catalogHandler(req, res) {
     try {
+      const artifactHeader = req.headers?.['x-catalog-include-artifacts'];
+      if (artifactHeader !== undefined && artifactHeader !== '1') {
+        return res.status(400).json({ error: 'X-Catalog-Include-Artifacts must be 1 when supplied' });
+      }
       const retryHeader = req.headers?.['x-catalog-retry-limit'];
       if (retryHeader !== undefined && retryHeader !== '0') {
         return res.status(400).json({ error: 'X-Catalog-Retry-Limit must be 0 when supplied' });
@@ -243,6 +254,7 @@ function createHandler({ anthropicKeyEnv = 'ANTHROPIC_API_KEY', openaiKeyEnv = '
         retry_count: result.finalMetadata.retry_count,
         retry_limit: result.finalMetadata.retry_limit,
         inputs: result.inputAssets,
+        ...(artifactHeader === '1' ? { artifacts: result.artifacts } : {}),
       });
     } catch (err) {
       console.error('catalog pipeline error:', err && err.stack ? err.stack : err);
