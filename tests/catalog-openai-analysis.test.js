@@ -25,7 +25,7 @@ function load(file, allowed, env = {}) {
 function truthFixture() {
   const en = (value, confidence = 0.95) => ({ value, confidence });
   return {
-    category: en('ring'), metal_type: en('yellow_gold'), karat: en('18K'), orientation: en('front'),
+    category: en('pendant'), metal_type: en('yellow_gold'), karat: en('18K'), orientation: en('front'),
     product_scale: { ...en('correct'), occupies_frame_pct: 60 }, framing: en('centered'),
     product_complete: { value: true, cropped_regions: [], confidence: 1 },
     visible_hallmarks: { present: false, regions: [], confidence: 0.9 },

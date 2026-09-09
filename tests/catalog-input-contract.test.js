@@ -33,7 +33,7 @@ function fixture() {
   const raw = Buffer.from('original-photograph-byte-marker');
   const clean = Buffer.from('segmented-master-byte-marker');
   return {
-    originalRaw: { buffer: raw, originalFilename: 'ring-14k-yellow-gold-SKU123.jpg' },
+    originalRaw: { buffer: raw, originalFilename: 'pendant-14k-yellow-gold-SKU123.jpg' },
     masterClean: { buffer: clean, originalFilename: 'earring-rose-gold-SKU999.png' },
     inputManifest: {
       contract_version: 2,

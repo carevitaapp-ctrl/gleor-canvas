@@ -17,7 +17,7 @@ Criteria:
 8. highlight_quality — Assess controlled softbox reflections and retained highlight detail without glare or clipping.
 9. physically_plausible_contact_shadow — Assess a restrained shadow connected to the product; reject artificial blurred ovals, duplicated shadows and floating appearance.
 10. sharpness_without_oversharpening — Assess natural detail without blur, edge halos, ringing or crunchy sharpening.
-11. correct_product_scale — Assess whole-product size in the frame: neither excessive empty space nor a cramped presentation. Do not assess relative component sizes.
+11. correct_product_scale — Assess whole-product size in the frame: neither excessive empty space nor a cramped presentation. For ring, the canonical rule is native product pixels on an adaptive square canvas, with the longest alpha bounding-box side at 62.5% of canvas width (one-pixel rounding tolerance). Do not demand preservation of the original canvas occupancy or a fixed output resolution. Do not assess relative component sizes.
 12. framing — Assess optical centering, balanced padding and safe presentation without clipping by the output frame. Do not judge product pose or perspective.
 13. pure_white_background — Assess a uniform pure #FFFFFF background outside the product and legitimate contact shadow, without cast, texture or gradient.
 14. premium_jewelry_catalog_appearance — Assess overall photographic finish suitable for a premium jewelry catalog. This is a standalone criterion, not an average of other scores; do not assess SKU geometry.

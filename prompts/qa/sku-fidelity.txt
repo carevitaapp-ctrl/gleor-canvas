@@ -106,3 +106,5 @@ critical_failures must always be an array; each entry is {"criterion":"one of th
   },
   "critical_failures": []
 }
+
+Visibility exception ONLY for inner_band_structural_fidelity: if NO inner opening, contour, surface, or marking is visible in BOTH RAW and output, it may be N/A (score=null, applicable=false, critical_deviation=false). The note MUST be a JSON-encoded object {"visibility":"not_visible_in_either","visible_inner_features":false,"occlusion_reason":"specific source and output occlusion/viewpoint evidence, at least 20 characters"}. This exception overrides the general unassessable=0 rule only when no inner feature is visible in either image. If ANY inner feature is visible, evaluate it; partially visible, blurry, uncertain or missing in output is NOT N/A. Do not infer inner structure from a cast shadow. Geometry, stones/rows and prongs remain required when gemstones exist.

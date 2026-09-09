@@ -16,12 +16,12 @@ const {
 const LAYER_A_PROMPT_PATH = path.join(__dirname, '..', 'prompts', 'qa', 'sku-fidelity.txt');
 const LAYER_B_PROMPT_PATH = path.join(__dirname, '..', 'prompts', 'qa', 'catalog-quality.txt');
 
-async function runCatalogQA({ originalBuffer, originalMediaType, finalBuffer, truth, openaiKey }) {
+async function runCatalogQA({ originalBuffer, originalMediaType, finalBuffer, truth, openaiKey, masterCleanBuffer }) {
   if (!openaiKey) throw new Error('runCatalogQA: openaiKey required');
   if (!Buffer.isBuffer(originalBuffer)) throw new Error('runCatalogQA: originalBuffer must be a Buffer');
   if (!Buffer.isBuffer(finalBuffer)) throw new Error('runCatalogQA: finalBuffer must be a Buffer');
 
-  const gate_a = await runLayerA({ originalBuffer, originalMediaType, finalBuffer, truth, openaiKey });
+  const gate_a = await runLayerA({ originalBuffer, originalMediaType, finalBuffer, truth, openaiKey, masterCleanBuffer });
   const gate_b = gate_a.status === 'PASS'
     ? await runLayerB({ originalBuffer, originalMediaType, finalBuffer, truth, openaiKey })
     : { status: 'NOT_RUN', criteria: {}, failures: [], model: null, usage: null, durationMs: 0 };
@@ -29,7 +29,7 @@ async function runCatalogQA({ originalBuffer, originalMediaType, finalBuffer, tr
   return { gate_a, gate_b, final_approval, verdict: decideVerdict(gate_a, gate_b) };
 }
 
-async function runLayerA({ originalBuffer, originalMediaType, finalBuffer, truth, openaiKey }) {
+async function runLayerA({ originalBuffer, originalMediaType, finalBuffer, truth, openaiKey, masterCleanBuffer }) {
   const template = fs.readFileSync(LAYER_A_PROMPT_PATH, 'utf8');
   const promptText = injectTruthContext(template, truth);
   const started = Date.now();
@@ -40,6 +40,7 @@ async function runLayerA({ originalBuffer, originalMediaType, finalBuffer, truth
       content: [
         { type: 'input_text', text: 'ORIGINAL INPUT:' },
         imageInput(originalBuffer, originalMediaType || 'image/jpeg'),
+        ...(masterCleanBuffer ? [{ type: 'input_text', text: 'MASTER CLEAN (derived from RAW; check RAW/Clean structure as well as final, never override RAW):' }, imageInput(masterCleanBuffer, 'image/png')] : []),
         { type: 'input_text', text: 'RENDERED OUTPUT:' },
         imageInput(finalBuffer, 'image/png'),
         { type: 'input_text', text: promptText },
@@ -117,6 +118,7 @@ function parseGate(text, layer, truth) {
   if (isA && truth?.setting_type?.value === 'prong') required.add('prong_fidelity');
   if (truth?.gemstone_presence?.value === true) {
     required.add(isA ? 'stone_layout_fidelity' : 'gemstone_clarity');
+    if (isA && truth?.category?.value === 'ring') { required.add('stone_row_fidelity'); required.add('prong_fidelity'); }
     if (!isA && truth?.setting_type?.value === 'prong') required.add('stone_prong_visual_separation');
   }
   if (!isA && ['yellow_gold', 'rose_gold'].includes(truth?.metal_type?.value)) {
@@ -147,7 +149,8 @@ function parseGate(text, layer, truth) {
     const validCritical = !isA || typeof v?.critical_deviation === 'boolean';
     const validScore = typeof v?.score === 'number' && Number.isInteger(v.score)
       && v.score >= 0 && v.score <= 100;
-    const validNA = optional.has(k) && !required.has(k) && v?.applicable === false && v.score === null && hasNote;
+    const hiddenInner = isA && k === 'inner_band_structural_fidelity' && hiddenInnerEvidence(v);
+    const validNA = optional.has(k) && (!required.has(k) || hiddenInner) && v?.applicable === false && v.score === null && hasNote;
     const valid = hasNote && validCritical && (validNA || (v?.applicable === true && validScore));
     criteria[k] = valid
       ? { score: v.score, applicable: v.applicable, note: v.note }
@@ -181,4 +184,13 @@ function decideVerdict(gateA, gateB) {
   return { value: allRetryable ? 'retry' : 'manual_review', reasons: failures };
 }
 
-module.exports = { runCatalogQA, decideVerdict };
+function hiddenInnerEvidence(v) {
+  if (v?.critical_deviation !== false) return false;
+  try {
+    const evidence = JSON.parse(v.note);
+    return evidence.visibility === 'not_visible_in_either'
+      && evidence.visible_inner_features === false
+      && typeof evidence.occlusion_reason === 'string' && evidence.occlusion_reason.trim().length >= 20;
+  } catch (_) { return false; }
+}
+module.exports = { runCatalogQA, decideVerdict, parseGate };
