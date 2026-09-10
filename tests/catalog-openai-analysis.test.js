@@ -25,7 +25,7 @@ function load(file, allowed, env = {}) {
 function truthFixture() {
   const en = (value, confidence = 0.95) => ({ value, confidence });
   return {
-    category: en('pendant'), metal_type: en('yellow_gold'), karat: en('18K'), orientation: en('front'),
+    category: en('ring'), metal_type: en('yellow_gold'), karat: en('18K'), orientation: en('front'),
     product_scale: { ...en('correct'), occupies_frame_pct: 60 }, framing: en('centered'),
     product_complete: { value: true, cropped_regions: [], confidence: 1 },
     visible_hallmarks: { present: false, regions: [], confidence: 0.9 },
@@ -88,7 +88,7 @@ function harness(replies, models = constants) {
 const images = call => call.input[0].content.filter(c => c.type === 'input_image');
 const data = (b, type) => `data:${type};base64,${b.toString('base64')}`;
 
-test('full one-pass path: RAW-only Truth, RAW/candidate A/B, 3 Responses + 1 unchanged renderer', async () => {
+test('ring one-pass path: RAW-only Truth, RAW/Clean/candidate A, RAW/candidate B and GPT renderer', async () => {
   const h = harness([truthFixture(), gate('A'), gate('B')]);
   const result = await h.runCatalogPipeline(h.input);
   assert.equal(result.final_approval, true);
@@ -96,10 +96,11 @@ test('full one-pass path: RAW-only Truth, RAW/candidate A/B, 3 Responses + 1 unc
   assert.deepEqual(h.rendererInputs[0], h.input.masterClean.buffer);
   assert.equal(images(h.calls[0]).length, 1);
   assert.equal(images(h.calls[0])[0].image_url, data(h.input.originalRaw.buffer, 'image/jpeg'));
-  for (const call of h.calls.slice(1)) {
-    assert.equal(images(call).length, 2);
+  for (const [index, call] of h.calls.slice(1).entries()) {
+    assert.equal(images(call).length, index === 0 ? 3 : 2);
+    if (index === 0) assert.equal(images(call)[1].image_url, data(h.input.masterClean.buffer, 'image/png'));
     assert.equal(images(call)[0].image_url, data(h.input.originalRaw.buffer, 'image/jpeg'));
-    assert.equal(images(call)[1].image_url, data(Buffer.from('candidate-1'), 'image/png'));
+    assert.equal(images(call).at(-1).image_url, data(Buffer.from('candidate-1'), 'image/png'));
     assert.ok(images(call).every(i => i.detail === 'high'));
   }
   assert.match(h.calls[2].input[0].content[0].text, /material\/color context only/);
@@ -189,6 +190,10 @@ test('normal presentation retry remains bounded at 5 analyses / 2 renders with i
   assert.equal(r.verdict.value, 'manual_review'); assert.equal(r.finalMetadata.retry_count, 1);
   assert.equal(h.calls.length, 5); assert.equal(h.rendererInputs.length, 2);
   assert.deepEqual(h.rendererInputs[0], h.rendererInputs[1]);
+  for (const i of [1, 3]) {
+    assert.equal(images(h.calls[i]).length, 3);
+    assert.equal(images(h.calls[i])[1].image_url, data(h.input.masterClean.buffer, 'image/png'));
+  }
 });
 
 test('HTTP, connection, timeout and response failures are not retried or leaked', async () => {

@@ -26,6 +26,7 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ope
   const filename = raw.originalFilename;
   const mediaType = raw.mediaType;
   const { runProductTruth } = require('./productTruth');
+  const { runGptImageEdit } = require('./gptImageEdit');
   const { runCatalogQA } = require('./catalogQA');
   const startedAt = new Date();
 
@@ -47,12 +48,12 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ope
   // Stage 4 → 5 → 6 — normal pass.
   let retry = false;
   const isRing = ptResult.truth.category?.value === 'ring' || fm.category?.value === 'ring';
-  const composer = isRing ? require('./geometryPreservingCompose') : null;
-  const render = isRing ? composer.composeRingHero : require('./gptImageEdit').runGptImageEdit;
-  let promptText = isRing ? composer.FRAMING : buildPrompt({ truth: ptResult.truth, retry });
-  let layers = isRing ? ['deterministic-ring-composer-v1'] : resolveLayers(ptResult.truth, retry);
+  // Rings use the same existing GPT Image and prompt layers as other products.
+  // The standalone deterministic composer must not replace the catalog renderer.
+  let promptText = buildPrompt({ truth: ptResult.truth, retry });
+  let layers = resolveLayers(ptResult.truth, retry);
 
-  let gieResult = await render({
+  let gieResult = await runGptImageEdit({
     imageBuffer: Buffer.from(clean.buffer),
     imageFilename: 'master-clean.png',
     imageMediaType: clean.mediaType,
@@ -61,11 +62,6 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ope
     ...(retryLimit === 0 ? { maxRetries: 0 } : {}),
   });
 
-  let localQA = null;
-  if (isRing) {
-    localQA = await composer.verifyRingHero({ imageBuffer: clean.buffer, candidateBuffer: gieResult.pngBuffer, diagnostics: gieResult.diagnostics });
-    if (!localQA.pass) throw new Error('Ring local geometry QA failed');
-  }
   let qaResult = await runCatalogQA({
     originalBuffer: Buffer.from(raw.buffer),
     originalMediaType: mediaType,
@@ -77,12 +73,12 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ope
 
   // One retry pass if verdict is 'retry'.
   let retryCount = 0;
-  if (qaResult.verdict.value === 'retry' && retryLimit >= 1 && !isRing) {
+  if (qaResult.verdict.value === 'retry' && retryLimit >= 1) {
     retry = true;
     retryCount = 1;
     promptText = buildPrompt({ truth: ptResult.truth, retry: true });
     layers = resolveLayers(ptResult.truth, true);
-    gieResult = await render({
+    gieResult = await runGptImageEdit({
       imageBuffer: Buffer.from(clean.buffer),
       imageFilename: 'master-clean.png',
       imageMediaType: clean.mediaType,
@@ -92,6 +88,7 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ope
     qaResult = await runCatalogQA({
       originalBuffer: Buffer.from(raw.buffer),
       originalMediaType: mediaType,
+      ...(isRing ? { masterCleanBuffer: Buffer.from(clean.buffer) } : {}),
       finalBuffer: gieResult.pngBuffer,
       truth: ptResult.truth,
       openaiKey,
@@ -106,14 +103,13 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ope
     }
   }
 
-  if (qaResult.verdict.value === 'retry' && (retryLimit === 0 || isRing)) {
+  if (qaResult.verdict.value === 'retry' && retryLimit === 0) {
     qaResult.verdict = { ...qaResult.verdict, value: 'manual_review', promoted_from_retry: true };
   }
 
   const finishedAt = new Date();
 
   const qaReport = {
-    ...(isRing ? { local_qa: localQA, composition: gieResult.diagnostics } : {}),
     gate_a: qaResult.gate_a,
     gate_b: qaResult.gate_b,
     final_approval: qaResult.final_approval,
@@ -147,12 +143,11 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ope
         prompt_sha256: sha256(Buffer.from(promptText, 'utf8')),
         retry,
       },
-      ...(isRing ? { ring_composer: { ...gieResult.diagnostics, local_qa: localQA, model: gieResult.model, duration_ms: gieResult.durationMs } } : {}),
       gpt_image: {
-        model:       isRing ? null : gieResult.model,
-        size:        isRing ? null : gieResult.size,
-        quality:     isRing ? null : gieResult.quality,
-        duration_ms: isRing ? 0 : gieResult.durationMs,
+        model:       gieResult.model,
+        size:        gieResult.size,
+        quality:     gieResult.quality,
+        duration_ms: gieResult.durationMs,
         usage:       gieResult.usage,
       },
       gate_a: {

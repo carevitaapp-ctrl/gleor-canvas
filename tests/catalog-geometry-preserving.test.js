@@ -1,9 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const sharp = require('sharp');
-const fs = require('fs');
-const vm = require('vm');
-const path = require('path');
 const { composeRingHero, verifyRingHero } = require('../catalog/geometryPreservingCompose');
 const { parseGate } = require('../catalog/catalogQA');
 const C = require('../catalog/constants');
@@ -63,25 +60,5 @@ test('visible inner-band below 95 or critical deviation still fails', () => {
   for (const v of [{ score: 94, applicable: true, note: 'Visible contour differs', critical_deviation: false }, { score: null, applicable: false, note: hidden, critical_deviation: true }]) {
     const a = gate(); a.criteria.inner_band_structural_fidelity = v;
     assert.equal(parseGate(JSON.stringify(a), 'A', truth).status, 'FAIL');
-  }
-});
-test('ring orchestrator uses real local composer, sends RAW/Clean to QA, never imports renderer or retries', async () => {
-  const clean = await fixture(), raw = Buffer.from('RAW authoritative marker');
-  for (const verdict of ['approved', 'retry', 'FAIL']) {
-    const module = { exports: {} }; let qaCalls = 0;
-    const deps = {
-      './metadataParser': { parseFilename: () => ({ category: { value: 'ring' }, sku: 'ring-test' }) },
-      './promptBuilder': { buildPrompt() { throw Error('No generative prompt'); } },
-      './writer': { sha256: b => require('crypto').createHash('sha256').update(b).digest('hex'), writeInputs: () => ({}), writeBundle: () => ({}) },
-      './inputContract': { validateInputs: async v => v }, './constants': C,
-      './productTruth': { runProductTruth: async a => { assert.deepEqual(a.imageBuffer, raw); return { truth }; } },
-      './geometryPreservingCompose': require('../catalog/geometryPreservingCompose'),
-      './catalogQA': { runCatalogQA: async a => { qaCalls++; assert.deepEqual(a.originalBuffer, raw); assert.deepEqual(a.masterCleanBuffer, clean); return { gate_a: { status: verdict === 'FAIL' ? 'FAIL' : 'PASS', criteria: {} }, gate_b: { status: verdict === 'FAIL' ? 'NOT_RUN' : 'PASS', criteria: {} }, final_approval: verdict === 'approved', verdict: { value: verdict, reasons: [] } }; } },
-    };
-    vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../catalog/index.js'), 'utf8'), { module, Buffer, Date, console, require: n => { assert.ok(n in deps, `Forbidden dependency ${n}`); return deps[n]; } });
-    const r = await module.exports.runCatalogPipeline({ originalRaw: { buffer: raw, originalFilename: 'ring-test.jpg' }, masterClean: { buffer: clean }, openaiKey: 'mock', retryLimit: 1 });
-    assert.equal(qaCalls, 1); assert.equal(r.finalMetadata.retry_count, 0); assert.equal(r.finalMetadata.stages.gpt_image.model, null);
-    assert.equal(r.finalMetadata.stages.ring_composer.local_qa.pass, true);
-    assert.equal(r.verdict.value, verdict === 'retry' ? 'manual_review' : verdict);
   }
 });

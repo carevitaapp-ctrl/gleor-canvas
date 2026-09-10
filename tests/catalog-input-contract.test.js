@@ -33,7 +33,7 @@ function fixture() {
   const raw = Buffer.from('original-photograph-byte-marker');
   const clean = Buffer.from('segmented-master-byte-marker');
   return {
-    originalRaw: { buffer: raw, originalFilename: 'pendant-14k-yellow-gold-SKU123.jpg' },
+    originalRaw: { buffer: raw, originalFilename: 'ring-14k-yellow-gold-SKU123.jpg' },
     masterClean: { buffer: clean, originalFilename: 'earring-rose-gold-SKU999.png' },
     inputManifest: {
       contract_version: 2,
@@ -263,7 +263,7 @@ test('validation owns snapshots before awaiting decode', async () => {
   assert.deepEqual(inputs.masterClean.buffer, expectedClean);
 });
 
-test('RAW alone goes to Truth and QA; renderer and its retry receive identical Clean bytes', async () => {
+test('ring RAW remains Truth/QA authority; renderer and retry receive identical immutable Clean bytes', async () => {
   const f = fixture(), h = pipeline({ verdicts: ['retry', 'approved'], mutateProviderInputs: true });
   const result = await h.runCatalogPipeline(f);
   assert.equal(result.sku, 'SKU123');
@@ -277,6 +277,7 @@ test('RAW alone goes to Truth and QA; renderer and its retry receive identical C
   const evaluations = h.calls.filter(c => c.type === 'qa');
   assert.equal(evaluations.length, 2);
   assert.ok(evaluations.every(c => c.originalBuffer.equals(f.originalRaw.buffer) && c.originalMediaType === 'image/jpeg'));
+  assert.ok(evaluations.every(c => c.masterCleanBuffer.equals(f.masterClean.buffer)));
   assert.deepEqual(evaluations.map(c => c.finalBuffer.toString()), ['candidate-marker-1', 'candidate-marker-2']);
   assert.equal(result.finalMetadata.hashes.original_raw_sha256, sha256(f.originalRaw.buffer));
   assert.equal(result.finalMetadata.hashes.master_clean_png_sha256, sha256(f.masterClean.buffer));
