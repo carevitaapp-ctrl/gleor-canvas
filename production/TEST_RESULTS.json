@@ -1,0 +1,36 @@
+{
+  "results": [
+    {
+      "test": "A/E",
+      "status": "PASS",
+      "routes": [
+        "/catalog",
+        "/hero",
+        "/hero-a",
+        "/hero-b",
+        "/hero-c",
+        "/process"
+      ],
+      "provider_calls": 0,
+      "retries": 0
+    },
+    {
+      "test": "C/D",
+      "status": "PASS",
+      "scope": "real HTTP routes, synthetic trusted adapters only"
+    },
+    {
+      "test": "B",
+      "status": "PASS",
+      "sha256": "1fc25cce27e5e266fd02f39df106abd86c6aab4dd81aa605c9e1e27b1a1a1e2d",
+      "scope": "accepted byte-identical export replay; no retroactive structural recertification"
+    },
+    {
+      "test": "fail_closed",
+      "status": "PASS"
+    }
+  ],
+  "live_deployed": false,
+  "real_provider_calls": 0,
+  "synthetic_adapters_are_not_production_QA": true
+}

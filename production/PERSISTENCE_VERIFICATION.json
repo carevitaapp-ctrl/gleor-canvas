@@ -1,0 +1,46 @@
+{
+  "source_commit": "433c336d95404b85e7ac37834d267e598ef98ca2",
+  "reread": [
+    {
+      "path": "server.js",
+      "match": true,
+      "blob": "a9740e66b39dc63e9f94808f8457129ea39624e3"
+    },
+    {
+      "path": "package.json",
+      "match": true,
+      "blob": "aef36d70a06800e8c6ebc895137f35e5e0ed4be4"
+    },
+    {
+      "path": "production/gates.js",
+      "match": true,
+      "blob": "0987dbda877b1e1c847a17270285abc756774f3c"
+    },
+    {
+      "path": "production/policy/authority.json",
+      "match": true,
+      "blob": "98b3598e0fafc5784eda38c51fdd52d2310ab9cf"
+    },
+    {
+      "path": "production/policy/earring.json",
+      "match": true,
+      "blob": "d4110a675a78f14e398b8cbe8d4cac151194fa74"
+    },
+    {
+      "path": "tests/production-runtime.test.js",
+      "match": true,
+      "blob": "38039387dc96322f35cf76b5d5b552076085f88a"
+    },
+    {
+      "path": "production/PATCH_RECORD.json",
+      "match": true,
+      "blob": "2ddd4f9c8877e993129243ba1b51c41e6d029070"
+    }
+  ],
+  "reloaded_http_suite": {
+    "passed": 4,
+    "failed": 0,
+    "provider_calls": 0
+  },
+  "live_deployed": false
+}
