@@ -1,0 +1,30 @@
+{
+  "patch_id": "GLEOR_RUNTIME_GATES_20261002",
+  "timestamp": "2026-10-02T10:56:59.253947+00:00",
+  "base_commit": "1e131974d0c7913ecf0adaeca32b0ea1b4238103",
+  "runtime_before": "1.0.0",
+  "runtime_after": "1.1.0",
+  "core_visual_rules": "1.3.0",
+  "earring_standard": "1.7.0",
+  "live_service": "srv-d8g72vf40ujc73bo69l0",
+  "deployment": "NOT_DEPLOYED",
+  "status": "RUNTIME_INTEGRATION_BLOCKED",
+  "blockers": [
+    "Trusted ingestion/lock/source-assessment adapter not connected to live service; GLEOR_RUN_ROOT not provisioned",
+    "Production structural/micro QA and verified geometry-preserving locked-finish adapters absent; runtime denies missing adapters",
+    "Current change intercepts legacy image paths; deploy would close them until migration and adapters are complete"
+  ],
+  "local_verification": "Actual createApp Express routes exercised with localhost HTTP; no provider calls; synthetic failure adapters explicitly test only",
+  "known_good": "IMG5751 byte-identical accepted export replay, not retroactive modern gate recertification",
+  "asset_sha256": "1fc25cce27e5e266fd02f39df106abd86c6aab4dd81aa605c9e1e27b1a1a1e2d",
+  "superseded_rules_reactivated": false,
+  "final_locked_assets_modified": false,
+  "files": {
+    "server.js": "093e1c79800d8bd1f56e5e8ae73d541891a77d437ae4a4de50ec7e37e14b7f14",
+    "package.json": "f350245e7ac2d53dc7a16891ec705730e9628debcc3271e581e3b55d709218ba",
+    "production/gates.js": "35c706f2a8d10e56605e1e5dd94b207336140dfda31d44d75aa3add5f73bdaa2",
+    "production/policy/authority.json": "505e8c7bbcbc7d9a07e546e0b92aa19abea985395d776705c1efa3ceb31b8912",
+    "production/policy/earring.json": "1204845aee426156352775bc915050d5e502795f9ba9c7c60ed514677d775c4f",
+    "tests/production-runtime.test.js": "72ba2b1be2ceabaf461b06c0ea9ed87e1cd13f6f0c5ea69b3c2533ddc301d86b"
+  }
+}

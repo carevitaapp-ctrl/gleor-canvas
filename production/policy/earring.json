@@ -1,0 +1,901 @@
+{
+  "standard_id": "GLEOR_EARRING_PRODUCTION_STANDARD_V1",
+  "version": "1.7.0",
+  "status": "ACTIVE",
+  "effective_at": "2026-10-02T08:24:00.824650+00:00",
+  "category": "earring",
+  "role": "CATEGORY_ADAPTER_PRODUCTION_POLICY",
+  "parent_core": "GLEOR_CATALOG_CORE_V1",
+  "authority": "GLEOR_PRE_RENDER_SOURCE_AUTHORITY_20261002",
+  "core_ownership": [
+    "Product Truth",
+    "provenance",
+    "finish library",
+    "QA framework",
+    "run logs",
+    "human-review state"
+  ],
+  "adapter_ownership": [
+    "earring stage order",
+    "existing/missing-view routing",
+    "view-aware earring checks",
+    "pair alignment",
+    "earring PDP framing",
+    "category QA requirements"
+  ],
+  "integration_status": "Persisted policy and executable local pre-render/publication guards; live n8n/provider integration NOT_DEPLOYED.",
+  "production_order": [
+    "PRODUCT_TRUTH",
+    "PRODUCT_ANATOMY_ORIENTATION",
+    "ORIENTATION_LOCK",
+    "STRUCTURE_CHECK",
+    "MACRO_PRODUCT_TRUTH_INSPECTION",
+    "MACRO_IDENTITY_LOCK",
+    "MICRO_SETTING_INSPECTION_WHEN_APPLICABLE",
+    "MICRO_SETTING_LOCK",
+    "CLOSURE_LOCK",
+    "FRONT_CAMERA_LOCK",
+    "EXISTING_VIEW_DETECTION",
+    "IDENTIFY_MISSING_VIEW",
+    "SOURCE_SUFFICIENCY_GATE",
+    "GENERATIVE_AUTHORITY_BOUNDARY",
+    "PRESENTATION_RECONSTRUCTION_IF_REQUIRED",
+    "MACRO_IDENTITY_CHECK",
+    "MICRO_SETTING_CHECK_WHEN_APPLICABLE",
+    "VIEW_AWARE_SKU_CHECK",
+    "CLOSURE_GEOMETRY_CHECK",
+    "FRONT_CAMERA_CHECK",
+    "METAL_SURFACE_MAP",
+    "METAL_CLEANUP_NEED_ASSESSMENT",
+    "METAL_CLEANUP_IF_SAFE_REQUIRED",
+    "LOCKED_FINISH_BINDING",
+    "FINISH_CONSISTENCY_CHECK",
+    "VISIBLE_INTERNAL_MARKING_CLEANUP_IF_REQUIRED",
+    "POST_APPEARANCE_STRUCTURE_AND_FINISH_RECHECK",
+    "MATCHED_HEIGHT_BASELINE",
+    "FINAL_FRAMING",
+    "PAIR_COMPOSITION",
+    "PREMIUM_QA",
+    "RELEASE_GATE",
+    "USER_FACING_RESULT",
+    "HUMAN_REVIEW"
+  ],
+  "product_truth": {
+    "authoritative_for": "SKU structure",
+    "record": [
+      "source ID/path",
+      "SHA-256",
+      "dimensions",
+      "visible anatomy",
+      "source quality"
+    ],
+    "other_sku_geometry_transfer": false,
+    "accepted_presentation_is_not_raw_truth": true
+  },
+  "anatomy_orientation": {
+    "inspect": [
+      "top/bottom",
+      "post/pin",
+      "hinge",
+      "clasp/closure",
+      "front stone-facing surface",
+      "natural wearable orientation"
+    ],
+    "initial_alignment": "Rigid rotation/translation/uniform scale supported by anatomy; record transformations and lock orientation",
+    "no_coordinate_only_orientation": true
+  },
+  "structure_check": {
+    "visible_identity": [
+      "silhouette family",
+      "proportions",
+      "opening proportions",
+      "stone-bearing areas",
+      "visible stone count/spacing/relative size",
+      "prong rhythm",
+      "hinge/clasp/post relationships"
+    ],
+    "raw_gate_a": "Compare actual source only; record NOT_RUN / NOT_RECERTIFIED when not rerun",
+    "human_approval_does_not_recertify_raw": true
+  },
+  "material": {
+    "champagne_rose": {
+      "id": "gleor_champagne_rose_v1",
+      "revision": "1.2.0",
+      "status": "HARD_LOCKED",
+      "canonical_reference": "Minimalist Rose Alt\u0131n Halka K\u00fcpeler.png",
+      "canonical_sha256": "2d85a405b78e8e3e932da6b80e7b3786b84235feeb3072f85fe9a8950883ad07"
+    },
+    "other_finishes": "Resolve SKU material from shared Core finish library; do not force all earring SKUs to Champagne Rose",
+    "cleanup_module": "GLEOR_METAL_CLEANUP_AGENT_V1",
+    "cleanup_version": "1.3.0",
+    "cleanup_rules": [
+      "structure lock is not metal RGB lock",
+      "preserve stones and exact geometry",
+      "clean coherent polished reflections without seams or plastic flatness",
+      "preserve physical dark reflections and curvature",
+      "uncertain reflections treated conservatively",
+      "scope explicit; no automatic full-metal retouch",
+      "accepted cleanup checkpoints read-only"
+    ],
+    "checks": [
+      "GATE_M",
+      "METAL_CONTINUITY_CHECK"
+    ],
+    "appearance_reference_role": "polish/reflections/material quality only; never geometry",
+    "cleanup_entry_order": "Create map -> assess need -> choose A/B/C before any edit entrypoint."
+  },
+  "internal_markings": {
+    "policy": "VISIBLE_INTERNAL_MARKINGS = REMOVE",
+    "remove": [
+      "hallmarks",
+      "stamps",
+      "letters",
+      "numbers",
+      "digits",
+      "symbols",
+      "engravings",
+      "micro markings",
+      "inner print",
+      "marking residue"
+    ],
+    "preserve": [
+      "real recess/panel geometry",
+      "mechanism geometry",
+      "hinge/clasp structure",
+      "metal shape"
+    ],
+    "target": "continuous clean natural polished metal, no stamp ghost, retain locked finish"
+  },
+  "view_routing": {
+    "required_set": [
+      "FRONT_HERO",
+      "ANGLED_PRESENTATION"
+    ],
+    "detect_using": [
+      "stone-face visibility",
+      "side thickness",
+      "inner opening/mechanism depth"
+    ],
+    "routes": {
+      "ANGLED_PRESENTATION": "generate missing FRONT_HERO only",
+      "FRONT_HERO": "generate missing ANGLED_PRESENTATION only",
+      "BOTH_PRESENT": "generate neither; validate existing assets",
+      "UNCERTAIN": "record ambiguity and resolve view classification before generation"
+    },
+    "missing_view_source_priority": [
+      "directly available source-supported presentation",
+      "CONTROLLED_PRESENTATION_RECONSTRUCTION if missing angle absent"
+    ],
+    "reconstruction": {
+      "layer": "PRESENTATION_ONLY",
+      "labels": [
+        "PRESENTATION_RECONSTRUCTION",
+        "HUMAN_REVIEW_REQUIRED"
+      ],
+      "never_label": [
+        "PRODUCT_TRUTH",
+        "AUTO_APPROVED"
+      ],
+      "inferred_regions": "INFERRED_PRESENTATION_SURFACE",
+      "inference": "minimum simple continuation of visible construction; no decorative features, added stones, holes or new mechanisms",
+      "source_visible_identity_overrides_inference": true,
+      "mandatory_precondition": "All four locks: MACRO_IDENTITY_LOCK, MICRO_SETTING_LOCK, CLOSURE_LOCK, FRONT_CAMERA_LOCK. Source-bound hard shape references required where applicable. Additionally SOURCE_SUFFICIENCY_GATE and GENERATIVE_AUTHORITY_BOUNDARY must authorize exact source/locks/target before rendering.",
+      "postcondition": "MACRO_IDENTITY_CHECK, MICRO_SETTING_CHECK, CLOSURE_GEOMETRY_CHECK, FRONT_CAMERA_CHECK, VIEW_AWARE_SKU_CHECK must all PASS before downstream production."
+    },
+    "role_change": "No automatic role reassignment or overwrite of existing locked views",
+    "one_missing_view_per_step": true,
+    "angle_language": {
+      "FRONT_HERO": "upright straight/front-facing, minimum perspective, readable front stones",
+      "ANGLED_PRESENTATION": "controlled mild horizontal yaw, readable stone face plus depth/side thickness; same camera height/pitch/roll/lens family"
+    },
+    "prohibited": [
+      "diagonal pose as angle substitute",
+      "top-down/bottom-up",
+      "strong foreshortening",
+      "full side-only stone-hiding view",
+      "another SKU geometry"
+    ]
+  },
+  "view_aware_sku_check": {
+    "visible_required": [
+      "visible stone count and spacing",
+      "relative stone sizes",
+      "setting/prong rhythm",
+      "rail width/curvature",
+      "view-consistent proportions/silhouette",
+      "visible terminals",
+      "visible hinge/clasp relationship",
+      "upright orientation"
+    ],
+    "occlusion_labels": [
+      "OCCLUDED_BY_FRONT_VIEW",
+      "OCCLUDED_BY_ANGLE"
+    ],
+    "occlusion_alone_fails": false,
+    "visible_identity_error": "FAIL",
+    "do_not_force_hidden_visibility": true,
+    "unknown_visible_feature": "REVIEW with precise unresolved feature; do not fabricate certainty",
+    "separate_from_raw_gate_a": true,
+    "no_exact_3d_guarantee_from_single_view": true
+  },
+  "finish_consistency": {
+    "compare": "both presentations against locked material identity and approved per-SKU appearance",
+    "angle_dependent_reflections": "allowed",
+    "different_base_metal_identity": "FAIL",
+    "gate": "GATE_F",
+    "mandatory": true,
+    "release_requires": "FINISH_CONSISTENCY_PASS and Gate F PASS"
+  },
+  "pair_alignment": {
+    "matched_displayed_height": true,
+    "common_baseline": true,
+    "matched_vertical_center": true,
+    "equal_width_required": false,
+    "view_caused_width_difference": "preserve",
+    "same_studio_family": true,
+    "target_deltas_px": {
+      "height": 0,
+      "baseline": 0,
+      "vertical_center": 0
+    },
+    "raster_tolerance": "Report actual measured deltas and measurement uncertainty; do not silently round to zero. IMG5751 human-accepted409/408 and0.5px center is a specific canonical example, not blanket authorization for larger mismatches.",
+    "independent_product_resizing_in_final_composition": false,
+    "transforms": "Common pair uniform scale and x/y placement; small spacing correction only if required before final lock"
+  },
+  "final_framing": {
+    "scope": "Earring PDP/final catalog pair master",
+    "canvas": [
+      1200,
+      1200
+    ],
+    "background": "#FFFFFF",
+    "primary_metric": "VISIBLE_PRODUCT_HEIGHT_PERCENT",
+    "bbox": "joint tight axis-aligned visible product bbox of both views, shadows excluded; exclusive right/bottom coords",
+    "formula": "100 * bbox_height / 1200",
+    "accepted_percent": [
+      33,
+      35
+    ],
+    "accepted_height_px": [
+      396,
+      420
+    ],
+    "preferred_percent": 34,
+    "preferred_height_px": 408,
+    "area_occupancy": "SECONDARY_REPORT_ONLY",
+    "grid_collection": "Smaller display only in website/UI; do not shrink catalog master for grid purposes",
+    "quality_workflow": "highest-quality locked individual assets -> native-quality composition -> ONE final high-quality common uniform resampling ->1200PNG",
+    "prohibited": [
+      "upscale previously reduced composite",
+      "repeated raster resize",
+      "screenshots as source",
+      "warp/stretch",
+      "aggressive sharpening",
+      "camera/finish changes"
+    ]
+  },
+  "premium_qa": {
+    "checks": [
+      "stone facet readability",
+      "stone/metal separation",
+      "prong edge clarity",
+      "reflection smoothness",
+      "locked finish consistency",
+      "inner-metal cleanliness",
+      "silhouette edge quality",
+      "shadow realism",
+      "abnormal resize softness",
+      "halos/oversharpening/compression artifacts"
+    ],
+    "inspection": [
+      "100percent final PNG",
+      "source/final close-up",
+      "normal PDP size"
+    ],
+    "results": [
+      "PREMIUM_QA_PASS",
+      "PREMIUM_QA_REVISE"
+    ],
+    "pass": "commercially strong stone/metal readability; record expected downsampling limits and visible limitations honestly",
+    "resampling_failure_route": "rebuild only from locked highest-quality individual assets with one final resampling; keep accepted composition; no regeneration"
+  },
+  "human_review": {
+    "required_before": [
+      "FINAL_LOCKED",
+      "GOLDEN_REFERENCE"
+    ],
+    "technical_pass_is_not_human_acceptance": true,
+    "pending_status": "HUMAN_REVIEW_REQUIRED",
+    "on_explicit_acceptance": [
+      "HUMAN_ACCEPTED",
+      "FINAL_LOCKED"
+    ],
+    "golden_reference": "Separate explicit human designation; not automatic with final approval"
+  },
+  "final_export": {
+    "format": "PNG",
+    "canvas": [
+      1200,
+      1200
+    ],
+    "if_locked_final_png_exists": "Byte-identical copy under final filename; zero extra resampling",
+    "verify": [
+      "dimensions",
+      "byte/pixel identity where copy",
+      "two-view relationship",
+      "accepted QA retained",
+      "SHA-256"
+    ],
+    "status": "FINAL_OUTPUT_PRODUCED",
+    "keep_all_prior_immutable_checkpoints": true
+  },
+  "provenance_required": [
+    "standard ID/version/hash",
+    "SKU/category",
+    "source IDs/paths/hashes",
+    "input/output hashes",
+    "anatomy/orientation",
+    "transforms",
+    "scope/masks if cleanup",
+    "finish ID/revision",
+    "inferred/occluded features",
+    "RAW_GATE_A distinct from VIEW_AWARE_SKU_CHECK",
+    "framing bbox/heights/deltas",
+    "premium QA",
+    "human decision",
+    "rejected outputs not baselines",
+    "cleanup route and evidence",
+    "surface-map hash and coordinate frame",
+    "proposed vs executed edit mask",
+    "precise mask review decision if route C"
+  ],
+  "loading_rule": "Future earring tasks must load ACTIVE_EARRING_STANDARD.json, verify standard status ACTIVE/version/hash, then this spec BEFORE planning. Historical/redirected rules are not active production inputs.",
+  "metal_cleanup_routing": {
+    "status": "ACTIVE",
+    "map_creation_requires_human_approval": false,
+    "map_creation": "Create a source-hash-bound full-canvas surface proposal before any approval check. Record metal, stones/settings, mechanisms, openings/background and unresolved material, plus disjoint SAFE/UNCERTAIN/PROTECTED regions. Unknown pixels remain uncertain; no invented exact segmentation.",
+    "map_geometry": "Record exact coordinate frame and transforms; source-coordinate map creation may precede final catalog orientation lock. Any subsequent transform invalidates or must identically transform/reverify the map. This does not grant edit approval.",
+    "route_entrypoint": "earring_cleanup_routing.py:decide_route",
+    "routes": {
+      "A": {
+        "name": "CLEANUP_NOT_REQUIRED",
+        "criteria": "Documented commercial-cleanliness review finds no cleanup need; only locked finish/application needed. No mandatory cleanup.",
+        "metal_cleanup": "SKIPPED_NOT_REQUIRED",
+        "gate_m": "NOT_APPLICABLE_SKIPPED_NOT_REQUIRED",
+        "continue": true,
+        "note": "Does not waive safe finish masking, marking-removal review, structure checks or Gate F."
+      },
+      "B": {
+        "name": "CLEANUP_AUTO_SAFE",
+        "criteria": "Source-bound map and localized diagnosis verified; sufficient safe edit domain; no risk to stones, settings, silhouette, mechanisms, openings or protected structure; exact non-edit-domain preservation can be checked.",
+        "human_mask_approval_required": false,
+        "record": [
+          "surface map",
+          "edit mask",
+          "source hash",
+          "confidence/evidence",
+          "cleanup parameters",
+          "input/output hashes",
+          "Gate M evidence"
+        ],
+        "continue": "Only after actual cleanup and Gate M PASS; route eligibility is not PASS."
+      },
+      "C": {
+        "name": "MASK_REVIEW_REQUIRED",
+        "criteria": "Editable metal domain or cleanup diagnosis is ambiguous, or safety evidence is insufficient.",
+        "state": "REVIEW",
+        "required_artifacts": [
+          "full surface map proposal",
+          "SAFE mask",
+          "UNCERTAIN mask",
+          "PROTECTED mask",
+          "color-coded overlay",
+          "proposed edit mask",
+          "source hash",
+          "precise review questions"
+        ],
+        "order": [
+          "MAP_CREATED",
+          "MASK_REVIEW_REQUIRED"
+        ],
+        "human_approval_applies_to": "Exact generated map digest and explicit proposed scope; no approval can make unresolved unsafe pixels automatically safe.",
+        "continue": false
+      }
+    },
+    "gate_policy": "Map/routing review does not run or pass Gate M. Route A uses explicit skip. B/C actual edits retain exact structure, protected RGB, continuity and material-depth checks. RAW_GATE_A remains separate from VIEW_AWARE_SKU_CHECK.",
+    "legacy_module_binding": "GLEOR_METAL_CLEANUP_AGENT_V1 v1.3.0 supplies cleanup invariants. Its global_surface.execute human-only entry guard must not be used for map creation or routing. Do not fabricate human approval for auto-safe execution. For current Route C stop after real review artifacts.",
+    "retry_policy": {
+      "automatic_retries": false,
+      "three_candidate_exploration": false
+    },
+    "review_is_not_blocked": true
+  },
+  "revision_history": [
+    {
+      "version": "1.0.0",
+      "status": "HISTORICAL_SUPERSEDED",
+      "sha256": "34577c70f6bc109126fd1e8fa074fb3b5e6d7dff2ef4cd18705e37ed7e98e807",
+      "archive": "history/v1.0.0/GLEOR_EARRING_PRODUCTION_STANDARD_V1.json"
+    },
+    {
+      "version": "1.1.0",
+      "change": "Pre-approval map creation, need assessment and A/B/C routing; existing finish, anatomy, view, framing and quality rules retained."
+    },
+    {
+      "version": "1.1.0",
+      "status": "HISTORICAL_SUPERSEDED",
+      "archive": "history/v1.1.0/GLEOR_EARRING_PRODUCTION_STANDARD_V1.json",
+      "sha256": "3c1c6076bed67a37a231e9e2215d9f1a7d9ca313d4d8e5d93fbdec1e2718b4d1"
+    },
+    {
+      "version": "1.2.0",
+      "change": "Mandatory source-bound macro inspection and identity lock before every earring reconstruction; macro recheck before pair composition."
+    },
+    {
+      "version": "1.2.0",
+      "status": "HISTORICAL_SUPERSEDED",
+      "sha256": "afe878a994e0ca476debccc3e343c3df03d57561e7045856475d704602ead83f",
+      "archive": "history/v1.2.0/GLEOR_EARRING_PRODUCTION_STANDARD_V1.json"
+    },
+    {
+      "version": "1.3.0",
+      "change": "Evidence-aware macro lock; only materially unsupported target-visible invention causes BLOCKING_AMBIGUITY. Mandatory inspection preserved."
+    },
+    {
+      "version": "1.3.0",
+      "status": "HISTORICAL_SUPERSEDED",
+      "sha256": "54e276ecae7b946de6e1c957a7dfee0452be6848831d3ad543044edfdb2991a7",
+      "archive": "history/GLEOR_EARRING_PRODUCTION_STANDARD_V1_1.3.0.json"
+    },
+    {
+      "version": "1.4.0",
+      "change": "Mandatory focal stone micro setting inspection/lock before reconstruction and micro setting check after; existing macro evidence-aware gate retained."
+    },
+    {
+      "version": "1.4.0",
+      "status": "HISTORICAL_SUPERSEDED",
+      "sha256": "d666adf13fb92cc5f08513ed7287586572ece38d682aeeb361dd4d7e97e53004",
+      "archive": "history/STANDARD_1.4.0.json"
+    },
+    {
+      "version": "1.5.0",
+      "change": "Mandatory source-patch hard shape authority, closure lock and frontal camera lock; five checks gate all downstream operations."
+    },
+    {
+      "version": "1.5.0",
+      "status": "HISTORICAL_SUPERSEDED",
+      "archive": "history/STANDARD_1.5.0.json",
+      "sha256": "32628a368370fb7e6cd2974b900741181567ab71393e2f0984c2ad593b9aef8c"
+    },
+    {
+      "version": "1.5.1",
+      "change": "Explicitly include structure/macro/micro inspection stages in all reconstruction gate sequences; preserve closure/camera hard gates."
+    },
+    {
+      "version": "1.5.1",
+      "status": "HISTORICAL_SUPERSEDED",
+      "archive": "history/EARRING_1.5.1.json",
+      "sha256": "8d06025e7eedfa9d2055f2d72f828d2036fd9302a29424800b367472b6391081"
+    },
+    {
+      "version": "1.6.0",
+      "patch_id": "GLEOR_STRUCTURE_FINISH_SEPARATION_20261001",
+      "timestamp": "2026-10-01T17:38:14.292890+00:00",
+      "changed_rules": [
+        "structure before finish",
+        "mandatory finish binding and QA",
+        "all-metal appearance scope with immutable geometry",
+        "internal-only intermediates",
+        "one final user-facing result",
+        "bounded independent retries"
+      ],
+      "compatibility": "Existing micro/closure/camera locks remain byte-identical. Existing structural failures retained; no RAW_GATE_A promotion. No superseded rules reactivated."
+    },
+    {
+      "version": "1.6.0",
+      "status": "HISTORICAL_SUPERSEDED",
+      "sha256": "96014bb9ab5636a34ee273092e59bf0fdf1e48320f7fab2b47dbf6d5a93c8ca7",
+      "archive": "history/GLEOR_EARRING_PRODUCTION_STANDARD_V1.json"
+    },
+    {
+      "version": "1.7.0",
+      "patch_id": "GLEOR_PRE_RENDER_SOURCE_AUTHORITY_20261002",
+      "timestamp": "2026-10-02T08:24:00.824650+00:00",
+      "changed_rules": [
+        "pre-render target source sufficiency",
+        "explicit generator authority",
+        "receipt-bound render and release gates"
+      ],
+      "compatibility": "Macro/micro locks and finish profile unchanged. Source ambiguity alone not blocked. Only unsupported target-visible identity blocks. Existing retry budget not reset; no superseded framing reactivated."
+    }
+  ],
+  "macro_identity_hard_gate": {
+    "mandatory": true,
+    "scope": "ALL_FUTURE_EARRING_PRESENTATION_RECONSTRUCTIONS",
+    "order": [
+      "PRODUCT_TRUTH",
+      "STRUCTURE_CHECK",
+      "MACRO_PRODUCT_TRUTH_INSPECTION",
+      "MACRO_IDENTITY_LOCK",
+      "MICRO_SETTING_INSPECTION_WHEN_APPLICABLE",
+      "MICRO_SETTING_LOCK",
+      "CLOSURE_LOCK",
+      "FRONT_CAMERA_LOCK",
+      "SOURCE_SUFFICIENCY_GATE",
+      "GENERATIVE_AUTHORITY_BOUNDARY",
+      "PRESENTATION_RECONSTRUCTION",
+      "MACRO_IDENTITY_CHECK",
+      "MICRO_SETTING_CHECK",
+      "VIEW_AWARE_SKU_CHECK",
+      "CLOSURE_GEOMETRY_CHECK",
+      "FRONT_CAMERA_CHECK"
+    ],
+    "required_fields": [
+      "visible_stone_count",
+      "stone_size_hierarchy",
+      "stone_spacing",
+      "prong_setting_rhythm",
+      "stone_bearing_rail_width",
+      "gallery_opening_count_shape_spacing",
+      "hinge_clasp_relationship",
+      "post_pin_relationship",
+      "inner_opening_proportions",
+      "rail_curvature",
+      "bottom_geometry",
+      "metal_thickness_family",
+      "visible_seams_joints"
+    ],
+    "required_evidence": [
+      "source ID/hash/dimensions",
+      "native and enlarged stone crops for every visible stone-bearing region",
+      "mechanism/gallery/rail/bottom crops",
+      "per-field observation and source crop binding",
+      "measured values with uncertainty where resolvable",
+      "explicit occluded/unresolved fields"
+    ],
+    "no_ai_enhancement_for_truth": true,
+    "no_memory_or_candidate_counts": true,
+    "lock_success": "Mandatory inspection and source-bound lock artifact. VERIFIED and PARTIAL_SOURCE_AMBIGUITY may proceed when each target-visible identity-critical field has source-supported safe constraints. Lock existence alone never authorizes generation; target-view sufficiency is independently mandatory.",
+    "incomplete_lock": "Only BLOCKING_AMBIGUITY blocks reconstruction after mandatory artifact/integrity checks. Numerical ambiguity alone does not block.",
+    "guard_entrypoint": "macro_identity_gate.py:authorize_reconstruction",
+    "postcheck_entrypoint": "macro_identity_gate.py:postcheck",
+    "postcheck_required": [
+      "stone count",
+      "stone spacing rhythm",
+      "prong rhythm",
+      "setting geometry",
+      "gallery opening structure",
+      "hinge/clasp identity",
+      "rail width",
+      "bottom geometry",
+      "overall visible SKU identity"
+    ],
+    "postcheck_results": [
+      "MACRO_IDENTITY_PASS",
+      "MACRO_IDENTITY_FAIL",
+      "MACRO_IDENTITY_REVIEW"
+    ],
+    "changed_or_unverified_locked_feature": "Any change to VERIFIED visible constraints: MACRO_IDENTITY_FAIL -> reject -> no pair composition. SOURCE_AMBIGUOUS fields are HUMAN_REVIEW, neither automatic PASS nor FAIL.",
+    "hidden_surfaces": "Only unseen surfaces may be conservatively inferred; never reinterpret visible Product Truth. Natural camera occlusion must be documented and is not itself a failure.",
+    "inspection_complete_not_lock_success": true,
+    "field_states": [
+      "VERIFIED",
+      "PARTIALLY_VISIBLE",
+      "OCCLUDED",
+      "SOURCE_AMBIGUOUS",
+      "NOT_APPLICABLE"
+    ],
+    "lock_states": [
+      "VERIFIED",
+      "PARTIAL_SOURCE_AMBIGUITY",
+      "BLOCKING_AMBIGUITY"
+    ],
+    "ambiguity_test": "Does the target require inventing a materially different visible SKU feature? If no, proceed using strongest source-supported constraints. If yes and no safe constraint exists, BLOCKING_AMBIGUITY.",
+    "row_policy": "Use source-row crop as topology authority: visible row length, diameter family, spacing rhythm, termination, setting width and repeated prong language. Never invent numeric count or use a generic jewelry pattern.",
+    "gallery_policy": "Separate openings, bridges, distribution and mechanism/pin relationships are hard constraints. Never merge multiple openings into a long cavity."
+  },
+  "micro_setting_hard_gate": {
+    "mandatory": true,
+    "scope": "Every earring presentation reconstruction with visible focal stone/setting",
+    "applicability": "Record APPLICABLE or evidence-backed NOT_APPLICABLE; never silently omit",
+    "sequence": [
+      "PRODUCT_TRUTH",
+      "STRUCTURE_CHECK",
+      "MACRO_PRODUCT_TRUTH_INSPECTION",
+      "MACRO_IDENTITY_LOCK",
+      "MICRO_SETTING_INSPECTION_WHEN_APPLICABLE",
+      "MICRO_SETTING_LOCK",
+      "CLOSURE_LOCK",
+      "FRONT_CAMERA_LOCK",
+      "SOURCE_SUFFICIENCY_GATE",
+      "GENERATIVE_AUTHORITY_BOUNDARY",
+      "PRESENTATION_RECONSTRUCTION",
+      "MACRO_IDENTITY_CHECK",
+      "MICRO_SETTING_CHECK",
+      "VIEW_AWARE_SKU_CHECK",
+      "CLOSURE_GEOMETRY_CHECK",
+      "FRONT_CAMERA_CHECK"
+    ],
+    "precondition": "PRESENTATION_RECONSTRUCTION = NOT_ALLOWED until source-bound MICRO_SETTING_LOCK exists for applicable SKU, all fields recorded with evidence states and safe visible constraints. Source ambiguity cannot authorize reinterpretation.",
+    "holders_separately": [
+      "exact visible silhouette",
+      "width",
+      "thickness",
+      "visible contact points",
+      "prong/cap shape or curvature",
+      "angle relative to stone",
+      "stone overlap",
+      "rail connection",
+      "single/double construction"
+    ],
+    "additional_fields": [
+      "stone outline",
+      "stone orientation",
+      "stone-to-holder spacing",
+      "holder-to-rail spacing",
+      "symmetry/asymmetry",
+      "visible seams"
+    ],
+    "evidence_states": [
+      "VERIFIED",
+      "PARTIALLY_VISIBLE",
+      "OCCLUDED",
+      "SOURCE_AMBIGUOUS",
+      "NOT_APPLICABLE"
+    ],
+    "evidence_requirements": [
+      "Product Truth SHA-256",
+      "native crop coordinates",
+      "native and enlarged crops",
+      "units and uncertainty for measurements",
+      "visible contour authority separate from hidden 3D uncertainty"
+    ],
+    "inference": "Hidden surface continuation only. Visible holders, support relationship and rail connections cannot be reinterpreted. No generic setting substitution.",
+    "postcheck_fields": [
+      "top holder silhouette",
+      "bottom holder silhouette",
+      "holder thickness",
+      "contact points",
+      "stone overlap",
+      "rail connection"
+    ],
+    "postcheck_results": [
+      "MICRO_SETTING_PASS",
+      "MICRO_SETTING_FAIL"
+    ],
+    "pass_requires": "Positive source-supported comparison for each target-visible locked feature; unavailable evidence is not a fabricated PASS. Natural occlusion documented.",
+    "fail_action": "Reject immediately; no Gate M, Gate F, pair composition, framing or Premium QA.",
+    "guard_entrypoint": "micro_setting_gate.py:authorize_reconstruction",
+    "postcheck_entrypoint": "micro_setting_gate.py:authorize_downstream",
+    "automation_limit": "Guard validates records/hashes/status only; visual inspection is required and is not automated metrology."
+  },
+  "hard_shape_reconstruction_gate": {
+    "mandatory": true,
+    "sequence": [
+      "PRODUCT_TRUTH",
+      "STRUCTURE_CHECK",
+      "MACRO_PRODUCT_TRUTH_INSPECTION",
+      "MACRO_IDENTITY_LOCK",
+      "MICRO_SETTING_INSPECTION_WHEN_APPLICABLE",
+      "MICRO_SETTING_LOCK",
+      "CLOSURE_LOCK",
+      "FRONT_CAMERA_LOCK",
+      "SOURCE_SUFFICIENCY_GATE",
+      "GENERATIVE_AUTHORITY_BOUNDARY",
+      "PRESENTATION_RECONSTRUCTION",
+      "MACRO_IDENTITY_CHECK",
+      "MICRO_SETTING_CHECK",
+      "VIEW_AWARE_SKU_CHECK",
+      "CLOSURE_GEOMETRY_CHECK",
+      "FRONT_CAMERA_CHECK"
+    ],
+    "precondition": "All four source-bound lock artifacts must exist and match source hash. Nonapplicable settings/hardware require evidence-backed NOT_APPLICABLE artifacts.",
+    "shape_authority": "Unretouched source patches with coordinates and hashes; visible contour/thickness family, width relationships, contact topology, overlaps and attachments are non-negotiable. Descriptive substitutes cannot override source pixels.",
+    "closure_fields": [
+      "pin_thickness",
+      "pin_trajectory",
+      "terminal_shape",
+      "closure_opening",
+      "hinge_relationship",
+      "upper_attachment",
+      "lower_attachment"
+    ],
+    "front_camera": {
+      "stone_face": "Face normal directed toward camera",
+      "perspective": "Minimum; no visible residual three-quarter yaw",
+      "axis": "Upright vertical front rail and stone axis",
+      "rear_loop": "May be naturally occluded behind front rail",
+      "studio": "Neutral white soft studio, same material family"
+    },
+    "postcondition": "All five checks must PASS for downstream work; any FAIL immediately rejects and prohibits Gate M, Gate F, composition, framing and Premium QA. Unverifiable comparison is REVIEW, not PASS.",
+    "fail_conditions": [
+      "source thin support becomes thick bed",
+      "single becomes double",
+      "upper holder silhouette changes",
+      "pin thickens",
+      "closure changes",
+      "stone-setting relationship changes",
+      "front remains visibly angled"
+    ],
+    "renderer_limit": "Policy and acceptance enforcement do not imply hard geometric control within a generative renderer. Disclose unsupported geometry-control capability; never claim pixel/3D identity based on prompt or hashes."
+  },
+  "locked_finish_binding": {
+    "id": "LOCKED_FINISH_BINDING",
+    "status": "ACTIVE",
+    "mandatory_for": "Every explicitly Champagne Rose earring, all required presentations",
+    "finish_id": "gleor_champagne_rose_v1",
+    "revision": "1.2.0",
+    "authority": "GLEOR_METAL_FINISH_LIBRARY.json",
+    "canonical_sha256": "2d85a405b78e8e3e932da6b80e7b3786b84235feeb3072f85fe9a8950883ad07",
+    "source_or_render_rgb_is_authority": false,
+    "scope": [
+      "outer metal",
+      "inner metal",
+      "holders",
+      "prongs/settings",
+      "rails",
+      "hinge",
+      "closure",
+      "post/pin",
+      "front metal",
+      "rear/internal metal"
+    ],
+    "geometry_immutable": [
+      "alpha/silhouette",
+      "stone geometry/boundaries/orientation",
+      "holder/prong/setting geometry",
+      "rails",
+      "hinge/clasp/post",
+      "openings",
+      "seams/joints",
+      "scale/orientation/placement"
+    ],
+    "execution_precondition": "All applicable structural gates pass; source-bound metal surface map exists; demonstrated safe appearance-only operation. Do not edit uncertain structure.",
+    "evidence_required": [
+      "structure-approved input SHA256",
+      "surface map and exact editable-mask SHA256",
+      "finish profile revision and canonical hash",
+      "operation and parameters",
+      "output SHA256",
+      "geometry and nonmetal-preservation check",
+      "finish comparison evidence"
+    ],
+    "binding_record_is_not_application": true,
+    "per_sku_finish_redefinition": false,
+    "universal_numeric_transform": false,
+    "structure_violation_result": "FINISH_APPLICATION_STRUCTURE_VIOLATION"
+  },
+  "finish_consistency_check": {
+    "id": "FINISH_CONSISTENCY_CHECK",
+    "status": "ACTIVE",
+    "mandatory": true,
+    "checks": [
+      "Champagne Rose hue family",
+      "warmth",
+      "highlight behavior",
+      "midtone family",
+      "shadow/reflection behavior",
+      "inner/outer consistency",
+      "polished-metal character",
+      "no uncontrolled yellow-gold drift",
+      "no muddy brown contamination",
+      "realistic dark reflections",
+      "material depth",
+      "no flattened/plastic metal"
+    ],
+    "authority": "locked profile rev1.2.0 and canonical visual reference",
+    "results": [
+      "FINISH_CONSISTENCY_PASS",
+      "FINISH_CONSISTENCY_FAIL"
+    ],
+    "pass_requires": "Actual applied finish and evidence for every applicable criterion, both views; no inferred PASS from binding metadata. Unknown/unperformed remains NOT_RUN or REVIEW and cannot release.",
+    "fail_action": "Withhold image; appearance-only correction within budget. Never regenerate or repair geometry to fix finish.",
+    "numeric_tolerance_policy": "Do not invent universal numeric tolerances; descriptive reference samples are not acceptance thresholds.",
+    "gate_f_relationship": "Gate F must also pass; this explicit check adds release enforcement, does not erase existing Gate F."
+  },
+  "authority_separation": {
+    "structure": "SKU_PRODUCT_TRUTH",
+    "appearance": "APPROVED_METAL_FINISH_LIBRARY",
+    "source_and_generated_rgb": "NON_AUTHORITATIVE_INTERMEDIATE",
+    "geometry_edits_during_finish": "FORBIDDEN"
+  },
+  "user_facing_release": {
+    "default": "WITHHOLD",
+    "requires": [
+      "SOURCE_SUFFICIENCY_GATE and GENERATIVE_AUTHORITY_BOUNDARY authorization",
+      "all applicable structural checks PASS",
+      "LOCKED_FINISH_BINDING applied and verified",
+      "FINISH_CONSISTENCY_PASS",
+      "Gate M PASS or justified not-required",
+      "Gate F PASS",
+      "markings clear",
+      "alignment/framing pass",
+      "PREMIUM_QA_PASS"
+    ],
+    "internal_only": [
+      "maps",
+      "masks",
+      "reconstruction outputs",
+      "failed structural candidates",
+      "failed finish candidates",
+      "routine QA"
+    ],
+    "failure_output": "Concise exact blocker; no misleading pseudo-final image",
+    "human_status": "HUMAN_REVIEW_REQUIRED",
+    "auto_final_locked": false
+  },
+  "retry_policy": {
+    "initial_reconstruction": 1,
+    "controlled_structure_correction_retry": 1,
+    "rejected_input_role": "NEGATIVE_EVIDENCE_ONLY",
+    "appearance_correction": {
+      "separate_from_structure": true,
+      "max_corrections_this_patch": 1,
+      "scope": "Only safe geometry-preserving appearance",
+      "exhausted": "STOP without release"
+    },
+    "img5684_current_authorization": "Exactly one controlled structure correction now; no additional retry",
+    "insufficient_source": "Zero renderer calls and no retry; patch does not reset spent budget."
+  },
+  "pre_render_authority": {
+    "policy_id": "GLEOR_GENERATION_AUTHORITY_POLICY_V1",
+    "version": "1.0.0",
+    "file": "GLEOR_GENERATION_AUTHORITY_POLICY_V1.json",
+    "sha256": "505e8c7bbcbc7d9a07e546e0b92aa19abea985395d776705c1efa3ceb31b8912"
+  },
+  "source_sufficiency_gate": {
+    "mandatory": true,
+    "definition_ref": {
+      "policy_id": "GLEOR_GENERATION_AUTHORITY_POLICY_V1",
+      "version": "1.0.0",
+      "file": "GLEOR_GENERATION_AUTHORITY_POLICY_V1.json",
+      "sha256": "505e8c7bbcbc7d9a07e546e0b92aa19abea985395d776705c1efa3ceb31b8912"
+    },
+    "target": "detected missing view",
+    "required_features": [
+      "silhouette_family",
+      "rail_curvature",
+      "rail_thickness",
+      "inner_opening_proportions",
+      "stone_outline",
+      "stone_orientation",
+      "stone_size_hierarchy",
+      "stone_setting_relationship",
+      "upper_holder",
+      "lower_holder",
+      "holder_thickness",
+      "single_double_support_topology",
+      "prongs",
+      "caps",
+      "gallery_topology",
+      "gallery_openings",
+      "bridges",
+      "hinge",
+      "clasp_closure",
+      "post_pin",
+      "joints",
+      "seams",
+      "bottom_geometry",
+      "other_sku_mechanisms"
+    ]
+  },
+  "generative_authority_boundary": {
+    "mandatory": true,
+    "definition_ref": {
+      "policy_id": "GLEOR_GENERATION_AUTHORITY_POLICY_V1",
+      "version": "1.0.0",
+      "file": "GLEOR_GENERATION_AUTHORITY_POLICY_V1.json",
+      "sha256": "505e8c7bbcbc7d9a07e546e0b92aa19abea985395d776705c1efa3ceb31b8912"
+    }
+  },
+  "release_gate": {
+    "mandatory": true,
+    "definition_ref": {
+      "policy_id": "GLEOR_GENERATION_AUTHORITY_POLICY_V1",
+      "version": "1.0.0",
+      "file": "GLEOR_GENERATION_AUTHORITY_POLICY_V1.json",
+      "sha256": "505e8c7bbcbc7d9a07e546e0b92aa19abea985395d776705c1efa3ceb31b8912"
+    },
+    "entrypoint": "generation_authority.py:publish_if_allowed"
+  }
+}

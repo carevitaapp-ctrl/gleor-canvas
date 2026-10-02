@@ -1,0 +1,115 @@
+{
+  "id": "GLEOR_GENERATION_AUTHORITY_POLICY_V1",
+  "version": "1.0.0",
+  "status": "ACTIVE",
+  "owner": "GLEOR CATALOG CORE shared production rules",
+  "patch_id": "GLEOR_PRE_RENDER_SOURCE_AUTHORITY_20261002",
+  "timestamp": "2026-10-02T08:24:00.824650+00:00",
+  "SOURCE_SUFFICIENCY_GATE": {
+    "mandatory": true,
+    "scope": "Every missing target view before any renderer call",
+    "required_features": [
+      "silhouette_family",
+      "rail_curvature",
+      "rail_thickness",
+      "inner_opening_proportions",
+      "stone_outline",
+      "stone_orientation",
+      "stone_size_hierarchy",
+      "stone_setting_relationship",
+      "upper_holder",
+      "lower_holder",
+      "holder_thickness",
+      "single_double_support_topology",
+      "prongs",
+      "caps",
+      "gallery_topology",
+      "gallery_openings",
+      "bridges",
+      "hinge",
+      "clasp_closure",
+      "post_pin",
+      "joints",
+      "seams",
+      "bottom_geometry",
+      "other_sku_mechanisms"
+    ],
+    "field_states": {
+      "DIRECTLY_SUPPORTED": "Source directly shows enough evidence for target feature.",
+      "TRANSFORM_SUPPORTED": "Known topology can be transformed without inventing identity; document derivation.",
+      "CONSERVATIVE_PRESENTATION_INFERENCE": "Only non-identity-critical surface appearance; never holder/mechanism geometry.",
+      "OCCLUDED": "Naturally invisible in target camera; state rationale.",
+      "SOURCE_AMBIGUOUS": "Numerics unresolved but source topology/rhythm sufficient; document safe constraint.",
+      "UNSUPPORTED_IDENTITY_CRITICAL": "Target-visible identity requires unavailable structural information."
+    },
+    "results": [
+      "SOURCE_SUFFICIENT_FOR_TARGET_VIEW",
+      "SOURCE_SUFFICIENT_WITH_PRESENTATION_INFERENCE",
+      "INSUFFICIENT_PRODUCT_TRUTH_FOR_TARGET_VIEW"
+    ],
+    "rules": [
+      "Any UNSUPPORTED_IDENTITY_CRITICAL blocks and consumes zero retry.",
+      "SOURCE_AMBIGUOUS alone does not block when safe topology constraint exists.",
+      "Every field needs source evidence and target visibility assessment; numerical precision is not invented.",
+      "OCCLUDED must refer to target camera, not merely source invisibility.",
+      "Prior QA failures do not establish missing source evidence by themselves.",
+      "Do not request new source when existing evidence safely supports target."
+    ],
+    "receipt_binding": [
+      "source SHA256",
+      "all structure lock hashes",
+      "target view",
+      "feature assessment hash",
+      "policy hash",
+      "retry ledger"
+    ],
+    "failure": "PRESENTATION_RECONSTRUCTION=NOT_ALLOWED; exact missing evidence, no plausible substitute."
+  },
+  "GENERATIVE_AUTHORITY_BOUNDARY": {
+    "mandatory": true,
+    "may_control": [
+      "supported camera presentation",
+      "studio background",
+      "contact shadow",
+      "lighting/reflection presentation",
+      "exposure",
+      "safe cleanup",
+      "framing/placement",
+      "non-identity-critical presentation surfaces",
+      "finish appearance only in separate locked finish stage"
+    ],
+    "may_not_invent": [
+      "stone shape/orientation/count/hierarchy",
+      "prongs/caps/holders/support/setting topology",
+      "gallery openings/bridges",
+      "rail topology",
+      "hinge/clasp/closure/post/pin",
+      "seams/joints/mechanisms/holes/bottom geometry",
+      "other visible SKU identity"
+    ],
+    "enforcement": "Call renderer only through evidence-bound authorization wrapper. Prompt-only geometry instructions are not enforcement. No renderer call when source gate fails, receipt is stale or retry budget is exhausted.",
+    "qa_role": "Post-generation detection is additional protection, not generation authority."
+  },
+  "RELEASE_GATE": {
+    "default": "DENY",
+    "requires": [
+      "source sufficiency authorized for exact target/source/locks",
+      "structural reconstruction authorized",
+      "all applicable structural checks PASS",
+      "locked finish binding VERIFIED",
+      "finish application verified",
+      "FINISH_CONSISTENCY_CHECK PASS",
+      "Gate F PASS",
+      "appearance structure preservation PASS",
+      "markings clear",
+      "framing/alignment PASS",
+      "PREMIUM_QA_PASS"
+    ],
+    "nonapplicable": "Explicit source-bound applicability record, never silent missing PASS.",
+    "binding": "Each gate evidence bound to candidate SHA256; later edit invalidates affected checks.",
+    "publication": "Only release wrapper invokes publisher. Withheld artifacts remain internal.",
+    "finish_structure_violation": "FINISH_APPLICATION_STRUCTURE_VIOLATION -> REJECT",
+    "human_acceptance": "Required for FINAL_LOCKED; release candidate is HUMAN_REVIEW_REQUIRED."
+  },
+  "implementation_limit": "Evidence classification requires source-based visual judgment; executable guards validate completeness/binding and deny unsupported calls, not autonomous 3D perception. No live n8n integration claimed."
+}

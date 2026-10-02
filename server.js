@@ -2,7 +2,11 @@ const express = require('express');
 const multer = require('multer');
 const sharp = require('sharp');
 
+function createApp(options = {}) {
 const app = express();
+const production = require('./production/gates').createService(options);
+app.locals.production = production;
+app.use(production.middleware);
 const upload = multer({ limits: { fileSize: 25 * 1024 * 1024 } });
 
 app.use(express.json({ limit: '20mb' }));
@@ -569,4 +573,8 @@ app.post('/catalog', (req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => console.log(`gleor-canvas running on ${PORT}`));
+return app;
+}
+if (require.main === module) createApp().listen(process.env.PORT || 3000, () => console.log('gleor-canvas guarded runtime 1.1.0'));
+module.exports = { createApp };
+
