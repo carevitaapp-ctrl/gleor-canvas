@@ -575,6 +575,6 @@ const PORT = process.env.PORT || 3000;
 
 return app;
 }
-if (require.main === module) createApp().listen(process.env.PORT || 3000, () => console.log('gleor-canvas guarded runtime 1.1.0'));
+if (require.main === module) createApp().listen(process.env.PORT || 3000, () => console.log('gleor-canvas guarded runtime 1.2.0'));
 module.exports = { createApp };
 

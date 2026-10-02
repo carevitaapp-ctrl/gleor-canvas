@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
 const HASH = x => crypto.createHash('sha256').update(x).digest('hex');
 const ROUTES = ['/catalog', '/hero', '/hero-a', '/hero-b', '/hero-c', '/process'];
 const POLICY_HASH = '505e8c7bbcbc7d9a07e546e0b92aa19abea985395d776705c1efa3ceb31b8912';
@@ -55,10 +55,12 @@ function sufficiency(a, policy, source, locks, target) {
   }
   return unsupported.length ? 'INSUFFICIENT_PRODUCT_TRUTH_FOR_TARGET_VIEW' : inference ? 'SOURCE_SUFFICIENT_WITH_PRESENTATION_INFERENCE' : 'SOURCE_SUFFICIENT_FOR_TARGET_VIEW';
 }
-function createService({ root, adapters = {}, dryRun = false } = {}) {
+function createService({ root, adapters, dryRun = false, testOnly = false, registryPath = process.env.GLEOR_EVIDENCE_REGISTRY } = {}) {
+  const synthetic = testOnly === true && process.env.NODE_ENV === 'test';
+  requireTrue(!adapters || synthetic, 'TEST_ADAPTER_INJECTION_FORBIDDEN');
   root = root || process.env.GLEOR_RUN_ROOT;
   async function execute(runId) {
-    const s = initial(runId); let dir, lock, image;
+    const s = initial(runId); let dir, lock, image; let activeAdapters = synthetic ? (adapters || {}) : {};
     const persist = () => {
       requireTrue(!!dir, 'AUDIT_UNAVAILABLE');
       const tmp = path.join(dir, 'runtime-state.tmp');
@@ -67,10 +69,12 @@ function createService({ root, adapters = {}, dryRun = false } = {}) {
       fs.appendFileSync(path.join(dir,'runtime-audit.jsonl'), JSON.stringify({...s, audit_at:new Date().toISOString()})+'\n');
     };
     async function stage(name, input) {
-      requireTrue(typeof adapters[name] === 'function', 'ADAPTER_NOT_CONFIGURED:' + name);
+      requireTrue(typeof activeAdapters[name] === 'function', 'ADAPTER_NOT_CONFIGURED:' + name);
       s.calls[name] = (s.calls[name] || 0) + 1;
       s.events.push({ stage: name, time: new Date().toISOString() }); persist();
-      return adapters[name](input);
+      const output=await activeAdapters[name](input);
+      s.events.push({stage:name,result:output?.status||'OPERATION_RETURNED',asset_sha256:output?.asset_sha256||null,evidence_ref:output?.evidence_ref||null,reason:output?.reason||null,fields:output?.fields||null});persist();
+      return output;
     }
     function check(result, name, asset) {
       requireTrue(result && result.status === 'PASS' && result.asset_sha256 === HASH(asset) && result.evidence_ref, name + (result?.status === 'FAIL' && result.asset_sha256 === HASH(asset) && result.evidence_ref ? '_FAIL' : '_UNVERIFIED'));
@@ -81,7 +85,9 @@ function createService({ root, adapters = {}, dryRun = false } = {}) {
       requireTrue(fs.realpathSync(dir).startsWith(fs.realpathSync(root) + path.sep), 'RUN_PATH_ESCAPE');
       lock = fs.openSync(path.join(dir, 'runtime.lock'), 'wx');
       const { authority, standard } = loadPolicy();
-      const m = JSON.parse(fs.readFileSync(path.join(dir, 'manifest.json')));
+      const evidence = synthetic ? null : await require('./evidence').load(root,runId,registryPath);
+      const m = evidence ? evidence.m : JSON.parse(fs.readFileSync(path.join(dir, 'manifest.json')));
+      if(evidence){s.PROVENANCE=evidence.provenance;activeAdapters=require('./realAdapters').create(evidence,dir);}
       Object.assign(s, { SKU_ID:m.sku_id, CATEGORY:m.category, PRODUCT_TRUTH_ID:m.product_truth?.id,
         PRODUCT_TRUTH_HASH:m.product_truth?.sha256, TARGET_VIEW:m.target_view,
         MICRO_SETTING_APPLICABILITY:m.micro_applicable, LOCKED_FINISH_ID:m.finish_id, LOCKED_FINISH_REVISION:m.finish_revision });
@@ -103,8 +109,8 @@ function createService({ root, adapters = {}, dryRun = false } = {}) {
         const locks = {};
         for (const [k,v] of Object.entries(m.locks || {})) locks[k] = verifiedFile(dir,v);
         requireTrue(typeof m.micro_applicable === 'boolean', 'MICRO_APPLICABILITY_UNKNOWN');
-        const macro = JSON.parse(locks['IMG5684_MACRO_IDENTITY_LOCK.json'] || locks['MACRO_IDENTITY_LOCK.json'] || 'null');
-        const micro = JSON.parse(locks['IMG5684_MICRO_SETTING_LOCK.json'] || locks['MICRO_SETTING_LOCK.json'] || 'null');
+        const macro = evidence?.macro || JSON.parse(locks['IMG5684_MACRO_IDENTITY_LOCK.json'] || locks['MACRO_IDENTITY_LOCK.json'] || 'null');
+        const micro = evidence?.micro || JSON.parse(locks['IMG5684_MICRO_SETTING_LOCK.json'] || locks['MICRO_SETTING_LOCK.json'] || 'null');
         requireTrue(macro && macro.source_sha256 === HASH(source), 'MACRO_LOCK_UNVERIFIED');
         s.MACRO_IDENTITY_LOCK_STATUS = macro.status;
         if (m.micro_applicable) { requireTrue(micro && micro.source_sha256 === HASH(source), 'MICRO_LOCK_UNVERIFIED'); s.MICRO_SETTING_LOCK_STATUS = micro.status; }
@@ -121,7 +127,7 @@ function createService({ root, adapters = {}, dryRun = false } = {}) {
         requireTrue(m.internal_only_renderer === true, 'INTERMEDIATE_VISIBILITY_NOT_CONTROLLED');
         // No provider module is imported when stage implementations are missing.
         const stages=['render','macro','viewAware','closure','camera','metalMap','finish','finishQA','gateM','gateF','markings','framing','pair','premium',...(m.micro_applicable?['micro']:[])];
-        for(const k of stages) requireTrue(typeof adapters[k]==='function','ADAPTER_NOT_CONFIGURED:'+k);
+        for(const k of stages) requireTrue(typeof activeAdapters[k]==='function','ADAPTER_NOT_CONFIGURED:'+k);
         const ledgerPath=path.join(dir,'attempt-ledger.json');
         const ledger=JSON.parse(fs.readFileSync(ledgerPath));
         requireTrue(Number.isInteger(ledger.attempts) && ledger.attempts>=0 && ledger.attempts<=2, 'INVALID_RETRY_LEDGER');
@@ -161,7 +167,7 @@ function createService({ root, adapters = {}, dryRun = false } = {}) {
         const finish=await stage('finish',{image:Buffer.from(image),map,finish_id:m.finish_id,revision:m.finish_revision,reference:finishReference});
         // Exact raster mask contract: dimensions/alpha/nonmetal protected bytes
         // cannot change. No resampling or structure-generating finish adapter.
-        requireTrue(finish && Buffer.isBuffer(finish.image) && typeof adapters.verifyAppearance==='function','FINISH_APPLICATION_UNVERIFIED');
+        requireTrue(finish && Buffer.isBuffer(finish.image) && typeof activeAdapters.verifyAppearance==='function','FINISH_APPLICATION_UNVERIFIED');
         check(await stage('verifyAppearance',{before,after:finish.image,map}),'FINISH_APPLICATION_STRUCTURE_VIOLATION',finish.image);
         image=finish.image;s.FINISH_BINDING_STATUS='VERIFIED';
         check(await stage('gateM',image),'GATE_M',image);

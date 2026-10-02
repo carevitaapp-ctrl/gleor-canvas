@@ -1,0 +1,64 @@
+{
+  "patch_id": "GLEOR_REAL_EVIDENCE_ADAPTERS_20261002",
+  "timestamp": "2026-10-02T11:19:45.223769+00:00",
+  "runtime_before": "1.1.0",
+  "runtime_after": "1.2.0",
+  "core_visual_rules": "1.3.0",
+  "earring_standard": "1.7.0",
+  "deployment": "NOT_DEPLOYED",
+  "provider_calls": 0,
+  "status": "RUNTIME_INTEGRATION_BLOCKED",
+  "reused": [
+    "Existing production/gates.js service, policy hashes, attempt ledger and audit log",
+    "Original source-authority package and immutable macro/micro/source-sufficiency records",
+    "Existing sharp dependency",
+    "Existing source-dependent CIELAB D65 finish recipe math; no masks transferred"
+  ],
+  "inventory": {
+    "catalog/productTruth.js": "Vision ingestion exists; not invoked or treated as verified focal-setting authority",
+    "micro_setting_gate.py/hard_shape_gate.py": "Record enforcement only; not visual measurement",
+    "production_controls.py": "Safe mask/nonmetal/alpha protection contract reused conceptually; superseded pre-map human approval not imported",
+    "finish_library": "Canonical profile1.2.0 retained exactly; descriptive Lab statistics are NOT thresholds"
+  },
+  "new": [
+    "Pinned operator registry and source-bound lineage/crop loader",
+    "Production/test adapter separation",
+    "Exact original-camera micro source-patch comparator",
+    "Pointwise chroma kernel with protected RGB/alpha and exact replay verification"
+  ],
+  "limits": [
+    "Novel camera micro comparison lacks source-supported geometric correspondence/semantic contours; FAIL_CLOSED",
+    "Only source-specific historical recipe is registered; cannot apply its compensation or masks to IMG5684 or arbitrary inputs",
+    "Locked finish library has no calibrated machine QA acceptance criteria; finishQA returns FAIL_CLOSED, never guesses PASS",
+    "Remaining full-production macro/view/camera/render/presentation processors still not registered; no paid callbacks linked"
+  ],
+  "tests": {
+    "actual_HTTP_routes": 6,
+    "IMG5684": {
+      "source_sufficiency": "INSUFFICIENT_PRODUCT_TRUTH_FOR_FRONT_HERO",
+      "authorization": "DENIED",
+      "provider_calls": 0,
+      "retries": 0,
+      "release": "BLOCKED"
+    },
+    "micro": "Actual source PNG/pixel patches PASS unchanged in source camera, one-pixel holder alteration FAIL, FRONT_HERO correspondence FAIL_CLOSED",
+    "finish": "Synthetic pixels only: deterministic operator/protected/alpha checks; not certified material appearance",
+    "IMG5751": "Read-only accepted export unchanged; no recertification",
+    "test_count": 10,
+    "passed": 10,
+    "failed": 0
+  },
+  "compatibility_note": "Existing gated architecture retained; production now requires GLEOR_EVIDENCE_REGISTRY plus GLEOR_RUN_ROOT. Test adapter injection requires both NODE_ENV=test and testOnly=true. No deployment authorized.",
+  "superseded_rules_reactivated": false,
+  "final_locked_assets_modified": false,
+  "files": {
+    "server.js": "c23b9a8b801b00445f6d0e3466efe16093f8225273ea5e6ba4ceb3cda1f1f3de",
+    "package.json": "b440752e141f6f3cb6b838461b157d7c4aedfb05b85ea52440d31cc5e4410f49",
+    "production/gates.js": "a8d08e842c1473b0f52cc4d1fe58702cec1129a175bc99dea82213ce10bf2fa8",
+    "production/evidence.js": "5b5cb59d7c3bd514334d48dcb5737490201a56ba195750d395e3c9400a198c6c",
+    "production/realAdapters.js": "f39b28a37ee0575de5e046519a5cc2a69ca4166fa6ef335167cabc0db37da7c7",
+    "production/registerEvidence.js": "50c5d0751458c5680ef8d301c0385a68a018fb5816dc89b5ff40a0ca92916974",
+    "tests/production-runtime.test.js": "c295727a60ce80de69c7009578dedb62f8131b2fe3acbdcb6ed7e905027ce519",
+    "tests/real-adapters.test.js": "66db764d15f837a50bfac6c4fdbeb04b4498e05023d0cb73066e933ade229697"
+  }
+}
