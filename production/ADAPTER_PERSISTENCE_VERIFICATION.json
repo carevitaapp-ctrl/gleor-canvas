@@ -1,0 +1,62 @@
+{
+  "source_commit": "70832246bde2f23592cd6dcccee3ae14391f5293",
+  "reread": [
+    {
+      "path": "server.js",
+      "match": true,
+      "blob": "2f1c61431774d177f6b399d167a338b569c0ad9b"
+    },
+    {
+      "path": "package.json",
+      "match": true,
+      "blob": "9050d6809f633a6d8ffcc43e873b9887f7bc45f9"
+    },
+    {
+      "path": "production/gates.js",
+      "match": true,
+      "blob": "1a0a63b39cbcdbd48998213e3f99f7800de33439"
+    },
+    {
+      "path": "production/evidence.js",
+      "match": true,
+      "blob": "95f92e4e8e79f40f8a8cf6911a242b82ebeaf622"
+    },
+    {
+      "path": "production/realAdapters.js",
+      "match": true,
+      "blob": "57ca5bc0221d1b55f2f2e10effd26ff87d9c68a4"
+    },
+    {
+      "path": "production/registerEvidence.js",
+      "match": true,
+      "blob": "1cad2f91b42cda2b946b3c3820c3c7ce9aae2f8c"
+    },
+    {
+      "path": "tests/production-runtime.test.js",
+      "match": true,
+      "blob": "613a78eeae5fdbf78127f0ed3a0d53529428eb63"
+    },
+    {
+      "path": "tests/real-adapters.test.js",
+      "match": true,
+      "blob": "e208461424a26d96004cade79181f50ae7b2ca98"
+    },
+    {
+      "path": "production/ADAPTER_PATCH_RECORD.json",
+      "match": true,
+      "blob": "00b9b6a85829c09681cfc3e37dd72f576bf4910b"
+    }
+  ],
+  "reloaded_test_suite": {
+    "passed": 10,
+    "failed": 0,
+    "provider_calls": 0
+  },
+  "deployment": "NOT_DEPLOYED",
+  "production_quality_certified": false,
+  "remaining": [
+    "Target-camera micro correspondence/semantic shape evidence unavailable; exact source-camera comparator only",
+    "Source-specific applicable Champagne Rose transfer and calibrated finish QA criteria not established by locked library",
+    "Full production render/macro/view/presentation processors still unconfigured; fail closed"
+  ]
+}
