@@ -1,4 +1,4 @@
-# Persistent data root — local implementation, pending review
+# Persistent data root — verified mount contract
 
 All catalog writes and release reads use production/storage.js. The release-store
 algorithm, policy, strict JSON and provider contracts are unchanged.
@@ -9,8 +9,8 @@ variable forces production checks even if NODE_ENV says test. Configured roots
 are never sourced from requests. Configured invalid roots never use the default.
 
 Production requires both GLEOR_DATA_MOUNT and GLEOR_DATA_ROOT pointing to
-existing canonical absolute directories. The root may equal the mount or be a
-strict descendant; equal roots must satisfy the same ownership/mode checks. Provision that application directory deliberately during a separately
+existing canonical absolute directories. The application root may equal a non-root mount or be a
+strict descendant; GLEOR_DATA_ROOT=/ is always rejected; equal roots must satisfy the same ownership/mode checks. Provision that application directory deliberately during a separately
 authorized deployment; this application never creates a missing configured root.
 Root/descendants must be owned by the runtime UID, owner-readable/writable/
 searchable and not group/world writable. Ancestors reject symlinks and unsafe
@@ -27,7 +27,7 @@ and manual directories receive the same containment/trust checks.
 Production requires Linux mountinfo to contain exactly the configured mount point
 with ext4/xfs/btrfs backing. A supported ancestor such as /var cannot satisfy a
 configured /var/data mount. Root must be contained beneath that exact mount;
-symlinks, nested mounts intersecting the root, and mount identity changes fail
+symlinks, nested mounts intersecting the application root, and mount identity changes fail
 closed. Root and managed directories must remain on the same device. Production
 on non-Linux hosts fails closed. Explicit local test/development modes use
 isolated storage without reading /proc; presence of RENDER disables that bypass.
@@ -61,3 +61,32 @@ until review and separate storage/deployment authorization. Keep auto-deploy off
 Trust boundary remains a service-owned filesystem. Portable pathname APIs do not
 protect against a hostile same-UID/root process replacing paths between checks.
 Health checks do not guarantee future free space or repeat the write probe.
+
+## Explicit persistent root mount (local adaptation; not deployed)
+
+A provisioned host with a verified persistent ext4/xfs/btrfs root filesystem can
+explicitly configure GLEOR_DATA_MOUNT=/. There is no automatic root-mount fallback
+and no provider-name exception. The same exact mount-table and stable device/
+identity checks apply. Root overlay/tmpfs, absent or duplicate mount entries fail.
+
+Proposed DigitalOcean configuration (NOT applied):
+
+```
+GLEOR_DATA_MOUNT=/
+GLEOR_DATA_ROOT=/srv/gleor/data
+NODE_ENV=production
+```
+
+The filesystem root itself is inspected and pinned, with no group/world write
+permission allowed even with the sticky bit. System ancestors such as /srv can
+remain root-owned with safe modes (e.g. 0755). The provisioned application directory
+must exist, be owned by the service UID, provide owner rwx, and exclude group/world
+write; 0700 is the intended application-directory mode. No remote path is created
+by this local task. GLEOR_DATA_ROOT=/ remains prohibited.
+
+Containment uses path-relative semantics, including the / boundary. Mounts at
+/srv, /srv/gleor, /srv/gleor/data or beneath that data hierarchy fail closed.
+Unrelated /proc, /sys, /dev, /run, /boot and Docker mounts outside the data hierarchy
+are allowed. Existing Render /var/data -> /var/data/gleor behavior remains intact.
+Filesystem type and mount identity verify the operator-selected boundary, not
+physical durability or backup recovery. Existing service-UID threat limits apply.

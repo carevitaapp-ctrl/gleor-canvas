@@ -6,6 +6,11 @@ const os = require('os');
 const crypto = require('crypto');
 function fail() { throw Object.assign(Error('PRODUCTION_STORAGE_NOT_READY'), { code: 'PRODUCTION_STORAGE_NOT_READY', statusCode: 503 }); }
 function check(ok) { if (!ok) fail(); }
+// Callers validate canonical absolute paths before using this containment test.
+function within(parent, child) {
+  const relative = path.relative(parent, child);
+  return relative === '' || (!path.isAbsolute(relative) && relative !== '..' && !relative.startsWith('..' + path.sep));
+}
 function createStorage(env = process.env) {
   // Render must never opt into a local fallback, even with a mistaken NODE_ENV.
   const render = Object.hasOwn(env, 'RENDER');
@@ -21,9 +26,14 @@ function createStorage(env = process.env) {
   function inspect(dir, create = false) {
     check(path.isAbsolute(dir) && path.normalize(dir) === dir);
     let current = path.parse(dir).root;
-    const entries = [];
+    const components = [current];
     for (const part of dir.slice(current.length).split(path.sep).filter(Boolean)) {
       current = path.join(current, part);
+      components.push(current);
+    }
+    const entries = [];
+    // Include '/' itself so its directory identity is checked and pinned too.
+    for (const current of components) {
       const inside = current === root || current.startsWith(root + path.sep);
       if (create && inside && current !== root) {
         try { fs.mkdirSync(current, { mode: 0o700 }); sync(path.dirname(current)); }
@@ -31,7 +41,7 @@ function createStorage(env = process.env) {
       }
       const s = fs.lstatSync(current);
       check(s.isDirectory() && !s.isSymbolicLink());
-      check((s.mode & 0o022) === 0 || (!inside && (s.mode & 0o1000) !== 0));
+      check((s.mode & 0o022) === 0 || (!inside && current !== path.parse(dir).root && (s.mode & 0o1000) !== 0));
       if (inside) check(typeof process.getuid === 'function' && s.uid === process.getuid() && (s.mode & 0o700) === 0o700);
       entries.push([current, s.dev, s.ino]);
     }
@@ -42,8 +52,8 @@ function createStorage(env = process.env) {
     if (local) return;
     check(process.platform === 'linux');
     check(typeof expectedMount === 'string' && expectedMount.trim() === expectedMount && !expectedMount.includes('\0'));
-    check(path.isAbsolute(expectedMount) && path.normalize(expectedMount) === expectedMount && expectedMount !== '/');
-    check(root === expectedMount || root.startsWith(expectedMount + path.sep));
+    check(path.isAbsolute(expectedMount) && path.normalize(expectedMount) === expectedMount);
+    check(within(expectedMount, root));
     inspect(expectedMount);
     const mounts = fs.readFileSync('/proc/self/mountinfo', 'utf8').trim().split('\n').map(line => {
       const fields = line.split(' '), separator = fields.indexOf('-');
@@ -56,8 +66,8 @@ function createStorage(env = process.env) {
     check(exact.length === 1 && ['ext4', 'xfs', 'btrfs'].includes(exact[0].type));
     // Reject alternate mounts between the boundary and root, or anywhere under
     // the root (including future writer directories), even with a supported type.
-    check(!mounts.some(({ mount }) => mount.startsWith(expectedMount + '/') &&
-      (root === mount || root.startsWith(mount + '/') || mount.startsWith(root + '/'))));
+    check(!mounts.some(({ mount }) => mount !== expectedMount && within(expectedMount, mount) &&
+      (within(mount, root) || within(root, mount))));
     check(fs.statSync(expectedMount).dev === fs.statSync(root).dev);
     if (mountIdentity === undefined) mountIdentity = exact[0].identity;
     check(mountIdentity === exact[0].identity);

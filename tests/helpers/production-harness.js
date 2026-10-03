@@ -42,13 +42,14 @@ function harness(config = {}) {
     file = path.resolve(file); if (cache.has(file)) return cache.get(file).exports;
     const module = { exports: {} }; cache.set(file, module);
     const localRequire = name => {
+      if (name === 'fs' && config.fs) return config.fs;
       if (name === 'https') return https;
       if (name === './gptImageEdit') return { runGptImageEdit: async args => { rendererCalls++; return { pngBuffer: await sharp(args.imageBuffer).flatten({ background: 'white' }).png().toBuffer(), model: 'offline-renderer' }; } };
       if (name === './heroEngine') return { FINAL_SIZE: 8, renderHero: async () => ({ output: Buffer.from('fixture'), meta: { category: 'ring', metalTone: 'unknown', input_md5: 'fixture', output_md5: 'fixture', pipeline_version: 'offline', status: 'APPROVED' } }) };
       if (name.startsWith('.')) { let next = path.resolve(path.dirname(file), name); if (fs.existsSync(next) && fs.statSync(next).isDirectory()) next = path.join(next, 'index.js'); if (!path.extname(next)) next += '.js'; return load(next); }
       return nativeRequire(name);
     };
-    vm.runInNewContext(fs.readFileSync(file, 'utf8'), { module, exports: module.exports, require: localRequire, __dirname: path.dirname(file), Buffer, console: config.console || console, process: { getuid: process.getuid.bind(process), platform: process.platform, env: { NODE_ENV: 'test', GLEOR_DATA_ROOT: directory, OPENAI_API_KEY: 'offline-fixture', PHOTOROOM_API_KEY: 'offline-fixture', ...config.env } }, Date, setTimeout, clearTimeout }, { filename: file });
+    vm.runInNewContext(fs.readFileSync(file, 'utf8'), { module, exports: module.exports, require: localRequire, __dirname: path.dirname(file), Buffer, console: config.console || console, process: { getuid: process.getuid.bind(process), platform: config.platform || process.platform, env: { NODE_ENV: 'test', GLEOR_DATA_ROOT: directory, OPENAI_API_KEY: 'offline-fixture', PHOTOROOM_API_KEY: 'offline-fixture', ...config.env } }, Date, setTimeout, clearTimeout }, { filename: file });
     return module.exports;
   }
   return { directory, load: name => load(path.join(root, name)), calls, rendererCalls: () => rendererCalls, cleanup: () => fs.rmSync(directory, { recursive: true, force: true }) };

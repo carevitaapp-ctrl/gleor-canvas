@@ -1,15 +1,15 @@
 {
-  "base_head": "67648400c15f0bcdf2895b2ba9edf6da115b52e1",
+  "base_head": "0f67fa6bbfbd7e927465cdb83463896cff3e0585",
   "tests": {
-    "boundary": {
-      "tests": 28,
-      "pass": 28,
+    "focused": {
+      "tests": 35,
+      "pass": 35,
       "fail": 0,
       "skipped": 0
     },
     "storage": {
-      "tests": 42,
-      "pass": 42,
+      "tests": 105,
+      "pass": 105,
       "fail": 0,
       "skipped": 0
     },
@@ -20,8 +20,8 @@
       "skipped": 0
     },
     "full": {
-      "tests": 312,
-      "pass": 312,
+      "tests": 347,
+      "pass": 347,
       "fail": 0,
       "skipped": 0
     },
@@ -36,36 +36,45 @@
   "test_transport": "existing network-guard.cjs blocks external transports; loopback only; mocked provider boundaries",
   "original_21_preserved_untracked": true,
   "source_sha256": {
-    "production/storage.js": "971ed0855c4e43ddca1062b43acf3c82478ebe343608ea3a998315fceef33a7f",
+    "production/storage.js": "6fbda1eca6a5fdc8ebb49e0fdd5a9f35436ef8d52f49efdbc9b8f762e7ad4678",
     "catalog/writer.js": "d5d5bf4a3fde794390851eb21e569ed2fb6fb017e84ed4316fe83c951eebbe44",
     "server.js": "36f8e6c9d5e9d70ca1d1084405b7834fc54e68c4eb744c9465a0641be3ba03f1",
     "tests/storage-root.test.js": "e2dd0900c7266f2d8594de1a791ac3708d869481ffc61e714d70cd4fa24e7480",
-    "tests/helpers/production-harness.js": "b73b1bbdba3039b7a0a8909b1191ebd96592b4ee5cae781ee0510bd2726d8fbb",
+    "tests/helpers/production-harness.js": "8aeacee6d0dfad6aaae85675c8d410a82d3849c16f3e5c56545b49c207bbd25a",
     "tests/catalog-benchmark.test.js": "923f9ff105ac8193918b40e49c569c5f4945f2cbadc2de1d0325da87c39a04a0",
     "tests/catalog-input-contract.test.js": "7a6e9c484193dfd5054a43479400983b0a8efe2529cb4c93b75d00ba2fb97428",
-    "docs/production/persistent-storage.md": "f51e830cdcd744d07af3fa6a839c038488a6437e08918cd7d099d330f096c246",
-    "tests/storage-mount.test.js": "300e766480b090eedf100137566921d04f6dc43b35b4f68d1688b9cbe8d0c5c2"
+    "docs/production/persistent-storage.md": "23f4dd35c39b70bece8008f6dba42f0ef14ee1ca19cf270f8f86c724ae1755c2",
+    "tests/storage-mount.test.js": "300e766480b090eedf100137566921d04f6dc43b35b4f68d1688b9cbe8d0c5c2",
+    "tests/storage-root-mount.test.js": "d764a4aafafaaf5668ff091318f60b044ffc5fedb403e98c0a73f2080927ece3"
   },
   "render_changes": false,
   "committed": false,
   "pushed": false,
   "limits": [
-    "Linux mountinfo and literal /var/data topology tested using filesystem abstraction; no live Render disk validation",
+    "Root/Render topologies use synthetic Linux mountinfo and local filesystem redirection; actual fsync, hard links and release consumption exercised; no deployment validation",
     "No physical power-loss verification",
     "Trusted service UID/pathname threat model unchanged",
     "Health HTTP 200 is liveness; storage.ready must be checked separately"
   ],
-  "mount_configuration": {
-    "GLEOR_DATA_MOUNT": "/var/data",
-    "GLEOR_DATA_ROOT": "/var/data/gleor",
-    "applied_to_Render": false
-  },
   "narrow_static_review": {
-    "exact_mount_identity": "PASS",
-    "child_root_topology": "PASS",
-    "ephemeral_ancestor_rejection": "PASS",
-    "nested_mount_rejection": "PASS",
-    "read_only_health": "PASS",
-    "pre_parser_503": "PASS"
-  }
+    "root_containment": "PASS",
+    "exact_root_mount_identity": "PASS",
+    "unsupported_root_filesystem_rejection": "PASS",
+    "unrelated_mounts_allowed": "PASS",
+    "intersecting_mounts_rejected": "PASS",
+    "Render_regression": "PASS",
+    "DigitalOcean_positive_topology": "PASS",
+    "pre_parser_provider_fail_closed": "PASS"
+  },
+  "mount_configurations": {
+    "Render": {
+      "GLEOR_DATA_MOUNT": "/var/data",
+      "GLEOR_DATA_ROOT": "/var/data/gleor"
+    },
+    "persistent_root": {
+      "GLEOR_DATA_MOUNT": "/",
+      "GLEOR_DATA_ROOT": "/srv/gleor/data"
+    }
+  },
+  "digitalocean_changes": false
 }
