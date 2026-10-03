@@ -1,14 +1,13 @@
 // catalog/productTruth.js
-// Stage 3 — OpenAI Vision analysis, produces 17-field Product Truth JSON.
-// Analysis only, never redesign. Filename-derived fields injected pre-call and
-// re-asserted post-call so Vision can never overwrite authoritative metadata.
+// Stage 3 — RAW analysis with separately labelled commercial declarations.
+// RAW observations only. Filename declarations are retained separately and never supplied as visual authority.
 
 const { runAnalysis, imageInput } = require('./openaiAnalysis');
 const fs = require('fs');
 const path = require('path');
 
 const {
-  CATEGORIES, METAL_TYPES, KARATS, ORIENTATIONS, PRODUCT_SCALES, FRAMINGS,
+  CATEGORIES, METAL_TYPES, ORIENTATIONS, PRODUCT_SCALES, FRAMINGS,
   BACKGROUND_CONDITIONS, GEMSTONE_TYPES, SETTING_TYPES,
   GEMSTONE_TYPE_MIN,
   GEMSTONE_COUNT_MIN,
@@ -28,7 +27,7 @@ async function runProductTruth({ imageBuffer, imageMediaType, sku, filenameMetad
   if (!Buffer.isBuffer(imageBuffer)) throw new Error('runProductTruth: imageBuffer must be a Buffer');
 
   const systemPrompt = fs.readFileSync(SYSTEM_PROMPT_PATH, 'utf8');
-  const userText = buildUserMessage(filenameMetadata);
+  const userText = buildUserMessage();
 
   const { json: visionJson, usage, model } = await runAnalysis({
     openaiKey, model: MODELS.productTruth, schemaName: 'product_truth', instructions: systemPrompt,
@@ -38,27 +37,28 @@ async function runProductTruth({ imageBuffer, imageMediaType, sku, filenameMetad
   return { truth, usage, model };
 }
 
-function buildUserMessage(fm) {
-  const known = [];
-  if (fm && fm.category   && fm.category.value)   known.push(`category = ${fm.category.value}`);
-  if (fm && fm.metal_type && fm.metal_type.value) known.push(`metal_type = ${fm.metal_type.value}`);
-  if (fm && fm.karat      && fm.karat.value)      known.push(`karat = ${fm.karat.value}`);
-  const knownBlock = known.length
-    ? `Authoritative filename metadata (must not be contradicted):\n- ${known.join('\n- ')}\n\n`
-    : `No authoritative filename metadata provided.\n\n`;
-  return knownBlock + `Analyze the image and return ONLY the JSON object described in the system prompt.`;
+function buildUserMessage() {
+  return 'Analyze ORIGINAL RAW only. No filename or commercial declaration is visual evidence. Return ONLY the specified JSON. Karat cannot be verified from appearance; return null for karat.';
 }
 
 function assembleProductTruth({ sku, filenameMetadata, visionJson }) {
-  // category is generally visible from shape — Vision may fill it with any confidence.
-  const category   = mergeAuthoritative(filenameMetadata && filenameMetadata.category,   visionJson.category,   CATEGORIES, 0);
-  // metal_type and karat are strict fields: Vision must reach CONFIDENCE_HIGH or field falls to null.
-  const metal_type = mergeAuthoritative(filenameMetadata && filenameMetadata.metal_type, visionJson.metal_type, METAL_TYPES, VISION_MIN_FOR_STRICT_FIELDS);
-  const karat      = mergeAuthoritative(filenameMetadata && filenameMetadata.karat,      visionJson.karat,      KARATS,      VISION_MIN_FOR_STRICT_FIELDS);
+  const category = observed(visionJson.category, CATEGORIES, 0);
+  const metal_type = observed(visionJson.metal_type, METAL_TYPES, VISION_MIN_FOR_STRICT_FIELDS);
+  // A photograph (including a visible stamp) cannot verify alloy fineness.
+  const karat = { value: null, confidence: 0, source: 'unknown' };
+  const declared_metadata = Object.fromEntries(['category','metal_type','karat'].map(field => [field, {
+    value: filenameMetadata?.[field]?.value || null, source: 'filename', verification: 'UNVERIFIED',
+  }]));
+  const metadata_conflicts = ['category','metal_type'].filter(field => {
+    const observation = field === 'category' ? category : metal_type;
+    return declared_metadata[field].value && observation.value && declared_metadata[field].value !== observation.value;
+  });
 
   const truth = {
     sku: sku || null,
     generated_at: new Date().toISOString(),
+    declared_metadata,
+    metadata_conflicts,
     sources: {
       category:   category.source,
       metal_type: metal_type.source,
@@ -99,13 +99,8 @@ function numOr(x, d) {
   return Number.isFinite(n) ? n : d;
 }
 
-// Filename value always wins if present and in allowlist. Vision may fill only when filename
-// is unknown AND Vision's confidence meets the minimum gate. Below the gate, the field falls
-// back to null / source='unknown' so the pipeline never acts on an estimate.
-function mergeAuthoritative(fromFilename, fromVision, allowlist, minVisionConfidence) {
-  if (fromFilename && fromFilename.value && allowlist.includes(fromFilename.value)) {
-    return { value: fromFilename.value, confidence: 1.0, source: 'filename' };
-  }
+// Only RAW analysis can populate observed fields.
+function observed(fromVision, allowlist, minVisionConfidence) {
   if (fromVision && typeof fromVision === 'object' && allowlist.includes(fromVision.value)) {
     const conf = clamp01(fromVision.confidence);
     if (conf >= (minVisionConfidence || 0)) {
@@ -136,11 +131,11 @@ function coerceScale(v) {
 }
 
 function coerceComplete(v) {
-  if (!v || typeof v !== 'object') return { value: true, cropped_regions: [], confidence: 0 };
+  if (!v || typeof v !== 'object') return { value: null, cropped_regions: [], confidence: 0 };
   const regions = Array.isArray(v.cropped_regions)
     ? v.cropped_regions.filter(r => CROPPED_REGIONS.includes(r))
     : [];
-  return { value: v.value === false ? false : true, cropped_regions: regions, confidence: clamp01(v.confidence) };
+  return { value: typeof v.value === 'boolean' && clamp01(v.confidence) >= .85 ? v.value : null, cropped_regions: regions, confidence: clamp01(v.confidence) };
 }
 
 function coerceHallmarks(v) {
@@ -174,8 +169,9 @@ function coerceBoolConf(v) {
 }
 
 function coerceGemstonePresence(v) {
-  if (!v || typeof v !== 'object') return { value: false, visible_count: null, count_confidence: 0 };
-  const value = v.value === true;
+  if (!v || typeof v !== 'object') return { value: null, visible_count: null, count_confidence: 0 };
+  const value = typeof v.value === 'boolean' ? v.value : null;
+  if ((value === false && v.visible_count > 0) || (value === true && v.visible_count === 0)) throw Object.assign(Error('INVALID_PRODUCT_TRUTH'), { code: 'INVALID_PRODUCT_TRUTH', statusCode: 422 });
   const conf = clamp01(v.count_confidence);
   // STRICT: only accept a numeric count when confidence is high enough. Below gate → null.
   let count = null;

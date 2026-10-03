@@ -2,19 +2,18 @@
 // Single source of truth for pipeline thresholds, canonical field order, and model IDs.
 // Every stage of the /catalog pipeline loads its numbers from here.
 
-const PIPELINE_VERSION = 'catalog-v1';
+const PIPELINE_VERSION = 'gleor-production-2.0.0';
 
 // Confidence gates (locked per approved plan §1).
 // Below LOW  → field becomes null/unknown; prompt uses "preserve as-is" clause.
 // Between LOW and HIGH → field carried forward with conditional wording.
-// At/above HIGH (or source=filename) → field asserted as fact in prompt.
+// At/above HIGH (RAW-observed) → field asserted as fact in prompt.
 const CONFIDENCE_LOW = 0.60;
 const CONFIDENCE_HIGH = 0.85;
 // STRICT NON-ESTIMATION RULE: Product Truth is descriptive only. Any attribute
-// listed below must reach CONFIDENCE_HIGH from Vision or be provided by
-// authoritative metadata (filename/product metadata); otherwise the field
-// falls back to null / "unknown" so the pipeline never acts on an estimate.
-// Fields under this rule: metal_type, karat, gemstone_type, gemstone visible_count.
+// listed below must reach CONFIDENCE_HIGH from RAW analysis. Filename declarations
+// are separate and unverified. Otherwise values become null / "unknown".
+// Fields: metal_type, gemstone_type, gemstone visible_count. Karat stays unverified.
 const VISION_MIN_FOR_STRICT_FIELDS = CONFIDENCE_HIGH;
 const GEMSTONE_TYPE_MIN = CONFIDENCE_HIGH;
 const GEMSTONE_COUNT_MIN = CONFIDENCE_HIGH;
@@ -33,6 +32,7 @@ const SETTING_TYPES = ['prong', 'bezel', 'pave', 'channel', 'tension', 'flush', 
 // Canonical order for Product Truth JSON key serialization.
 // Deterministic prompt/artifact hashing depends on this being stable.
 const PRODUCT_TRUTH_KEY_ORDER = [
+  'declared_metadata', 'metadata_conflicts',
   'sku',
   'generated_at',
   'sources',

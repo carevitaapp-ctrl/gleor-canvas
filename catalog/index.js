@@ -8,19 +8,32 @@
 //   runCatalogPipeline({ originalRaw, masterClean, inputManifest, openaiKey })
 //   createHandler({ openaiKeyEnv })  → Express handler
 
+const { ProductionRun } = require('../production/policy');
 const { parseFilename }   = require('./metadataParser');
 const { buildPrompt, resolveLayers } = require('./promptBuilder');
-const { writeInputs, writeBundle, sha256 } = require('./writer');
+const { writeInputs, writeBundle, writeFailure, sha256 } = require('./writer');
 const { readCatalogRequest, validateInputs } = require('./inputContract');
 const { PIPELINE_VERSION, MAX_RETRIES, MODELS } = require('./constants');
 
-async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, openaiKey, retryLimit = MAX_RETRIES }) {
+async function runCatalogPipeline(args) {
+  const production = new ProductionRun(args.productionOptions);
+  try { return await executeCatalog(args, production); }
+  catch (err) {
+    production.abort(err.code || 'PIPELINE_ERROR');
+    err.production = production.snapshot();
+    try { if (writeFailure) err.diagnostic_path = writeFailure(err.production); }
+    catch (_) { /* Persistence failure never grants authorization or hides the original failure. */ }
+    throw err;
+  }
+}
+async function executeCatalog({ originalRaw, masterClean, inputManifest, openaiKey, retryLimit = MAX_RETRIES }, production) {
   // No provider-capable module is loaded until V2 input validation and immutable
   // persistence succeed. RAW is the sole structural authority; Clean is derived.
   if (![0, MAX_RETRIES].includes(retryLimit)) throw Object.assign(new Error('Invalid catalog retry limit'), { statusCode: 400 });
   const inputs = await validateInputs({ originalRaw, masterClean, inputManifest });
   if (!openaiKey)    throw new Error('runCatalogPipeline: openaiKey required');
   const inputAssets = writeInputs(inputs);
+  await production.source({ ...inputs, openaiKey });
   const raw = inputs.originalRaw;
   const clean = inputs.masterClean;
   const filename = raw.originalFilename;
@@ -35,6 +48,7 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ope
 
   // Stage 3 — Product Truth (OpenAI Vision).
   const ptStart = Date.now();
+  production.begin('PRODUCT_TRUTH');
   const ptResult = await runProductTruth({
     imageBuffer: Buffer.from(raw.buffer),
     imageMediaType: mediaType,
@@ -46,12 +60,15 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ope
 
   // Stage 4 → 5 → 6 — normal pass.
   let retry = false;
-  const isRing = ptResult.truth.category?.value === 'ring' || fm.category?.value === 'ring';
+  const isRing = ptResult.truth.category?.value === 'ring';
+  production.lock(ptResult.truth);
+  production.authorize(isRing);
   const composer = isRing ? require('./geometryPreservingCompose') : null;
   const render = isRing ? composer.composeRingHero : require('./gptImageEdit').runGptImageEdit;
   let promptText = isRing ? composer.FRAMING : buildPrompt({ truth: ptResult.truth, retry });
   let layers = isRing ? ['deterministic-ring-composer-v1'] : resolveLayers(ptResult.truth, retry);
 
+  production.begin('RENDER');
   let gieResult = await render({
     imageBuffer: Buffer.from(clean.buffer),
     imageFilename: 'master-clean.png',
@@ -66,7 +83,9 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ope
     localQA = await composer.verifyRingHero({ imageBuffer: clean.buffer, candidateBuffer: gieResult.pngBuffer, diagnostics: gieResult.diagnostics });
     if (!localQA.pass) throw new Error('Ring local geometry QA failed');
   }
+  await production.verify(gieResult.pngBuffer, openaiKey, localQA);
   let qaResult = await runCatalogQA({
+    onGate: production.qaRecorder(gieResult.pngBuffer),
     originalBuffer: Buffer.from(raw.buffer),
     originalMediaType: mediaType,
     ...(isRing ? { masterCleanBuffer: Buffer.from(clean.buffer) } : {}),
@@ -82,6 +101,7 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ope
     retryCount = 1;
     promptText = buildPrompt({ truth: ptResult.truth, retry: true });
     layers = resolveLayers(ptResult.truth, true);
+    production.begin('RENDER');
     gieResult = await render({
       imageBuffer: Buffer.from(clean.buffer),
       imageFilename: 'master-clean.png',
@@ -89,7 +109,9 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ope
       prompt: promptText,
       openaiKey,
     });
+    await production.verify(gieResult.pngBuffer, openaiKey, null);
     qaResult = await runCatalogQA({
+      onGate: production.qaRecorder(gieResult.pngBuffer),
       originalBuffer: Buffer.from(raw.buffer),
       originalMediaType: mediaType,
       finalBuffer: gieResult.pngBuffer,
@@ -110,9 +132,14 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ope
     qaResult.verdict = { ...qaResult.verdict, value: 'manual_review', promoted_from_retry: true };
   }
 
+  const release = production.release(qaResult);
+  const released = release.publication_authorized === true;
+  if (!released && qaResult.verdict.value === 'approved') qaResult.verdict = { value: 'manual_review', reasons: release.stages.RELEASE_GATE.reasons };
+  qaResult.final_approval = released;
   const finishedAt = new Date();
 
   const qaReport = {
+    production: release,
     ...(isRing ? { local_qa: localQA, composition: gieResult.diagnostics } : {}),
     gate_a: qaResult.gate_a,
     gate_b: qaResult.gate_b,
@@ -121,6 +148,8 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ope
   };
 
   const finalMetadata = {
+    production: release,
+    asset_state: released ? 'RELEASED' : 'CANDIDATE_ONLY',
     pipeline_version: PIPELINE_VERSION,
     input_contract_version: 2,
     inputs: inputAssets,
@@ -190,6 +219,7 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ope
     : null;
 
   const bundle = writeBundle({
+    release,
     sku,
     verdict: qaResult.verdict.value,
     inputAssets,
@@ -202,6 +232,7 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ope
   });
 
   return {
+    production: release,
     sku,
     verdict: qaResult.verdict,
     gate_a: qaResult.gate_a,
@@ -216,7 +247,7 @@ async function runCatalogPipeline({ originalRaw, masterClean, inputManifest, ope
       product_truth: ptResult.truth,
       prompt: promptText,
       qa_report: qaReport,
-      final_metadata: finalMetadata,
+      ...(released ? { final_metadata: finalMetadata } : { candidate_metadata: finalMetadata }),
     },
   };
 }
@@ -245,11 +276,14 @@ function createHandler({ openaiKeyEnv = 'OPENAI_API_KEY' } = {}) {
       const requestInputs = readCatalogRequest(req);
       const result = await runCatalogPipeline({
         ...requestInputs,
+        productionOptions: readProductionOptions(req),
         retryLimit: retryHeader === '0' ? 0 : MAX_RETRIES,
         openaiKey: process.env[openaiKeyEnv],
       });
 
-      res.status(200).json({
+      const response = {
+        production: result.production,
+        asset_state: result.final_approval ? 'RELEASED' : 'CANDIDATE_ONLY',
         sku: result.sku,
         verdict: result.verdict.value,
         gate_a: result.gate_a,
@@ -263,12 +297,19 @@ function createHandler({ openaiKeyEnv = 'OPENAI_API_KEY' } = {}) {
         retry_limit: result.finalMetadata.retry_limit,
         inputs: result.inputAssets,
         ...(artifactHeader === '1' ? { artifacts: result.artifacts } : {}),
-      });
+      };
+      require('../production/http').certifyResponse(response, result.production);
+      res.status(200).json(response);
     } catch (err) {
-      console.error('catalog pipeline error:', err && err.stack ? err.stack : err);
-      res.status(err.statusCode || 500).json({ error: err.message || String(err) });
+      res.status(err.statusCode || 500).json({ error: 'CATALOG_FAILED', production: err.production || { publication_authorized: false, stages: { RELEASE_GATE: { status: 'FAIL', reasons: ['REQUEST_OR_PIPELINE_ERROR'] } } }, asset_state: 'CANDIDATE_ONLY' });
     }
   };
 }
 
+function readProductionOptions(req) {
+  const raw = req.headers?.['x-gleor-production'];
+  if (raw === undefined) return {};
+  if (typeof raw !== 'string' || raw.length > 2048) throw Object.assign(Error('Invalid production options'), { statusCode: 400 });
+  try { return JSON.parse(raw); } catch (_) { throw Object.assign(Error('Invalid production options'), { statusCode: 400 }); }
+}
 module.exports = { runCatalogPipeline, createHandler };

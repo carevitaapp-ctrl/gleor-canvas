@@ -16,6 +16,8 @@ function load(file, allowed, env = {}) {
     module, exports: module.exports, Buffer, Date, __dirname: path.dirname(path.join(root, file)),
     process: { env }, console: { error() {} },
     require(name) {
+      if (name === '../production/policy') return require('./helpers/legacy-policy-fixture');
+      if (name === '../production/http' || name === './production/http') return { certifyResponse() {}, protect(req,res,next) { next(); } };
       assert.ok(Object.hasOwn(allowed, name), `Unexpected runtime dependency: ${name}`);
       return allowed[name];
     },
@@ -112,7 +114,7 @@ test('full one-pass path: RAW-only Truth, RAW/candidate A/B, 3 Responses + 1 unc
   assert.equal(result.finalMetadata.hashes.render_candidate_sha256, hash(Buffer.from('candidate-1')));
 });
 
-test('strict confidence gates and authoritative filename coercion stay unchanged', async () => {
+test('strict confidence gates retain filename declarations without promoting them', async () => {
   const f = truthFixture();
   f.metal_type.confidence = 0.84; f.karat.confidence = 0.84; f.gemstone_type.confidence = 0.84; f.gemstone_presence.count_confidence = 0.84;
   const h = harness([f, f]);
@@ -121,7 +123,8 @@ test('strict confidence gates and authoritative filename coercion stay unchanged
   assert.equal(a.metal_type.value, null); assert.equal(a.karat.value, null);
   assert.equal(a.gemstone_type.value, 'unknown'); assert.equal(a.gemstone_presence.visible_count, null);
   const b = (await h.runProductTruth({ ...args, filenameMetadata: { metal_type: { value: 'silver' }, karat: { value: '925' } } })).truth;
-  assert.equal(b.metal_type.value, 'silver'); assert.equal(b.metal_type.source, 'filename'); assert.equal(b.karat.value, '925');
+  assert.equal(b.metal_type.value, null); assert.equal(b.metal_type.source, 'unknown'); assert.equal(b.karat.value, null);
+  assert.equal(b.declared_metadata.metal_type.value, 'silver'); assert.equal(b.declared_metadata.karat.value, '925'); assert.equal(b.declared_metadata.karat.verification, 'UNVERIFIED');
   assert.equal(JSON.stringify(Object.keys(b)), JSON.stringify(constants.PRODUCT_TRUTH_KEY_ORDER));
 });
 

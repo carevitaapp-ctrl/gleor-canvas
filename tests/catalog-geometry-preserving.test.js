@@ -70,6 +70,7 @@ test('ring orchestrator uses real local composer, sends RAW/Clean to QA, never i
   for (const verdict of ['approved', 'retry', 'FAIL']) {
     const module = { exports: {} }; let qaCalls = 0;
     const deps = {
+      '../production/policy': require('./helpers/legacy-policy-fixture'),
       './metadataParser': { parseFilename: () => ({ category: { value: 'ring' }, sku: 'ring-test' }) },
       './promptBuilder': { buildPrompt() { throw Error('No generative prompt'); } },
       './writer': { sha256: b => require('crypto').createHash('sha256').update(b).digest('hex'), writeInputs: () => ({}), writeBundle: () => ({}) },

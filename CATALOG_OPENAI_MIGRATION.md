@@ -1,3 +1,5 @@
+> Historical migration record. Runtime 2.0.0 now adds central enforcement; see docs/production/README.md for the active contract and updated call counts. The statements below describe the earlier migration, not current deployment status.
+
 # Catalog analysis migration — local implementation only
 
 Base: ff4cf80967b1f53199d732839652e95e23cf4cf8. Not pushed or deployed.

@@ -1,0 +1,36 @@
+✔ R1 prepared run without QA cannot release (42.739041ms)
+✔ R2 fake release PASS summary does not manufacture gate records (18.910375ms)
+✔ R3 Gate A failure cannot be upgraded through recorder or release (19.545667ms)
+✔ R4 B cannot start or pass before A (28.626166ms)
+✔ R5 A PASS and B NOT_RUN denies release (13.149458ms)
+✔ R6 A PASS and B FAIL denies release and preserves failure (13.607875ms)
+✔ R7 actual catalogQA records successful candidate-bound gates (16.100833ms)
+✔ R8 abort is terminal for release and every authority mutation (14.311209ms)
+✔ R9 pre-abort capability never revives (14.145583ms)
+✔ R10 source establishment is single-use (13.018125ms)
+✔ R11 identity lock cannot be replaced (12.73275ms)
+✔ R12 capability cannot authorize different bytes or serialized copy (11.877917ms)
+✔ R13 old capability stays invalid after a later successful generation, even for identical bytes (12.273959ms)
+✔ R14 filename gold/14K cannot override observed silver or authorize release (57.324625ms)
+✔ R15 karat remains declared/unverified despite confident visual output (11.516542ms)
+✔ R16 declared material never enters observed prompt assertions or QA applicability (12.921209ms)
+✔ R17 contradictory gemstones rejected before lock at both boundaries (32.237541ms)
+✔ R18 contradictory gemstones rejected before lock at both boundaries (34.543959ms)
+✔ R19 unknown gemstone facts remain blocked (82.023417ms)
+✔ R20 inconsistent final approval cannot release despite recorded passes (12.593875ms)
+✔ R21 stale QA recorder cannot record for a later generation (13.766083ms)
+✔ R22 mutation of candidate bytes invalidates QA recording (13.23ms)
+✔ R23 skipped RUNNING cannot fabricate successful gate completion (11.989125ms)
+✔ R24 provider transports are blocked by the test preload (0.115625ms)
+✔ R25 Product Truth cannot be restarted after release (12.433667ms)
+✔ R26 Gate A failure blocks B recording without relying on release evaluation (12.16ms)
+✔ R27 abort during source analysis cannot establish source authority (12.449167ms)
+✔ R28 abort during candidate comparison cannot restore verification authority (12.324292ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 614.518083

@@ -1,8 +1,7 @@
 // catalog/metadataParser.js
-// Stage 2 — extract authoritative fields from filename.
-// Priority (locked per approved plan): filename > product metadata > OpenAI Vision > unknown.
-// Any field returned here with source='filename' is authoritative and must not be
-// overwritten by Product Truth (Stage 3).
+// Stage 2 — extract declared commercial fields from filename.
+// Runtime 2.0.0 remediation retains these declarations as UNVERIFIED metadata.
+// They never override RAW observations; identity conflicts block production.
 
 const path = require('path');
 
@@ -91,7 +90,7 @@ function detectSku(rawBase, tokens) {
 }
 
 /**
- * Parse a filename into authoritative product metadata.
+ * Parse a filename into declared product metadata.
  * @param {string} filename - filename with or without directory prefix; extension optional.
  * @returns {{
  *   sku: string|null,

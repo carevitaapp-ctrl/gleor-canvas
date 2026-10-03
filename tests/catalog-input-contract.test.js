@@ -21,6 +21,8 @@ function load(relative, allowed, onRequire = () => {}) {
     process: { env: { OPENAI_API_KEY: 'offline-placeholder' } },
     console: { log() {}, error() {} },
     require(name) {
+      if (name === '../production/policy') return require('./helpers/legacy-policy-fixture');
+      if (name === '../production/http' || name === './production/http') return { certifyResponse() {}, protect(req,res,next) { next(); } };
       if (!Object.hasOwn(allowed, name)) throw new Error(`Forbidden dependency: ${name}`);
       onRequire(name);
       return allowed[name];

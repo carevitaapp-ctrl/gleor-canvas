@@ -74,14 +74,13 @@ function categoryFile(truth) {
 function metalFile(truth) {
   const m = truth && truth.metal_type;
   if (!m || !m.value || !METAL_TYPES.includes(m.value)) return 'preserve_as_seen.txt';
-  if (m.source === 'filename') return `${m.value}.txt`;
-  if (m.confidence >= CONFIDENCE_HIGH) return `${m.value}.txt`;
+  if (m.source === 'vision' && m.confidence >= CONFIDENCE_HIGH) return `${m.value}.txt`;
   return 'preserve_as_seen.txt';
 }
 
 function lightingFile(truth) {
   const m = truth && truth.metal_type && truth.metal_type.value;
-  return COOL_METALS.has(m) ? 'soft_studio_dark_metal.txt' : 'soft_studio.txt';
+  return truth?.metal_type?.source === 'vision' && COOL_METALS.has(m) ? 'soft_studio_dark_metal.txt' : 'soft_studio.txt';
 }
 
 // Deterministic assertions block. Includes only facts that clear their confidence
@@ -97,21 +96,15 @@ function buildAssertions(truth) {
 
   const metalAsserted =
     truth.metal_type.value &&
-    (truth.metal_type.source === 'filename' || truth.metal_type.confidence >= CONFIDENCE_HIGH);
+    truth.metal_type.source === 'vision' && truth.metal_type.confidence >= CONFIDENCE_HIGH;
   if (metalAsserted) {
     lines.push(`- metal_type: ${truth.metal_type.value} (source: ${truth.metal_type.source})`);
   } else {
     lines.push(`- metal_type: not asserted — preserve the metal's exact hue and tone as seen in the input`);
   }
 
-  const karatAsserted =
-    truth.karat.value &&
-    (truth.karat.source === 'filename' || truth.karat.confidence >= CONFIDENCE_HIGH);
-  if (karatAsserted) {
-    lines.push(`- karat: ${truth.karat.value} (source: ${truth.karat.source})`);
-  } else {
-    lines.push(`- karat: not asserted — do not invent any hallmark, karat stamp, or engraved indicator; preserve visible source markings`);
-  }
+  // No verified assay input exists in this pipeline; declarations cannot assert karat.
+  lines.push(`- karat: not asserted — do not invent any hallmark, karat stamp, or engraved indicator; preserve visible source markings`);
 
   if (truth.gemstone_presence.value === true) {
     if (Number.isInteger(truth.gemstone_presence.visible_count)) {
@@ -119,7 +112,7 @@ function buildAssertions(truth) {
     } else {
       lines.push(`- gemstones: present; count uncertain — preserve every visible stone exactly, do not add or remove any`);
     }
-  } else {
+  } else if (truth.gemstone_presence.value === false) {
     lines.push(`- gemstones: not visible in the input — do not introduce gemstones`);
   }
 

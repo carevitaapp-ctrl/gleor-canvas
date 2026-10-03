@@ -1,0 +1,30 @@
+✔ HTTP 1 insufficient reconstruction cannot reach renderer (98.199542ms)
+✔ HTTP 2 structural failure cannot release (50.413417ms)
+✔ HTTP 3 finish {"finish_id":"unknown"} fails closed (22.30075ms)
+✔ HTTP 3 finish {"finish_revision":"999"} fails closed (19.385125ms)
+✔ HTTP 4 Gate A cannot release (39.676792ms)
+✔ HTTP 4 Gate B cannot release (38.680917ms)
+✔ HTTP 5 review candidate has no final labels or final artifact path (38.81325ms)
+✔ HTTP 6 /hero cannot bypass policy (15.0225ms)
+✔ HTTP 6 /hero-a cannot bypass policy (4.9365ms)
+✔ HTTP 6 /hero-b cannot bypass policy (4.595291ms)
+✔ HTTP 6 /hero-c cannot bypass policy (4.151542ms)
+✔ HTTP 6 /process cannot bypass policy (12.066167ms)
+✔ HTTP 6 /HERO-C/ cannot bypass policy (4.655125ms)
+✔ HTTP candidate binary response carries nonproduction headers (4.57225ms)
+✔ HTTP 7 compliant path releases only after persisted release manifest (42.876875ms)
+✔ HTTP request cannot inject authorization or prompt overrides (5.163459ms)
+✔ HTTP malformed JSON has explicit denied production state (6.339875ms)
+✔ HTTP successful reconstruction still passes every stage before release (36.425458ms)
+✔ HTTP legacy hero approval is downgraded even on successful binary render (180.557041ms)
+✔ HTTP remediation conflicting filename material cannot release (36.249417ms)
+✔ HTTP remediation contradictory gemstones false/3 (35.673292ms)
+✔ HTTP remediation contradictory gemstones true/0 (28.965125ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 786.760375

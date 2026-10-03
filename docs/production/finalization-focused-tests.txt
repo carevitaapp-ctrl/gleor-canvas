@@ -1,0 +1,28 @@
+✔ guard permits loopback TCP using native normalized net.connect form (6.421667ms)
+✔ guard permits actual loopback HTTP (4.521792ms)
+✔ guard rejects external TCP in object, positional and normalized array forms (0.678667ms)
+✔ native net.connect normalized array cannot reach external transport (0.300375ms)
+✔ external plain HTTP rejected before any transport (0.418375ms)
+✔ external HTTPS and TLS remain rejected (0.239083ms)
+✔ guard normalizes supported loopback forms and preserves local IPC (0.26375ms)
+✔ guard fails closed on malformed destinations without transport (0.301125ms)
+✔ finish finish_id rejects array without providers (6.435375ms)
+✔ finish finish_id rejects object without providers (3.320875ms)
+✔ finish finish_id rejects number without providers (3.648917ms)
+✔ finish finish_id rejects boolean without providers (3.105459ms)
+✔ finish finish_id rejects null without providers (3.097709ms)
+✔ finish finish_revision rejects array without providers (2.5525ms)
+✔ finish finish_revision rejects object without providers (2.699041ms)
+✔ finish finish_revision rejects number without providers (2.785791ms)
+✔ finish finish_revision rejects boolean without providers (2.895542ms)
+✔ finish finish_revision rejects null without providers (2.896667ms)
+✔ registered string finish/revision reaches release through real orchestration (71.243209ms)
+✔ unknown and inherited string finish names cannot select registry entries (69.996166ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 237.838417

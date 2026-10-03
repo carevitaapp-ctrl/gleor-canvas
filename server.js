@@ -5,6 +5,7 @@ const sharp = require('sharp');
 const app = express();
 const upload = multer({ limits: { fileSize: 25 * 1024 * 1024 } });
 
+app.use(require('./production/http').protect);
 app.use(express.json({ limit: '20mb' }));
 
 const CATEGORY_CONFIG = {
@@ -470,8 +471,8 @@ app.post('/hero', upload.single('image'), async (req, res) => {
       routeTo: 'manual review',
     });
   } catch (err) {
-    console.error(err);
-    return res.status(err.statusCode || 500).json({ error: err.message });
+    console.error('Legacy processing failed');
+    return res.status(err.statusCode || 500).json({ error: 'PROCESSING_FAILED' });
   }
 });
 
@@ -498,8 +499,8 @@ app.post('/process', upload.single('image'), async (req, res) => {
     return respond(req, res, result);
 
   } catch (err) {
-    console.error(err);
-    return res.status(err.statusCode || 500).json({ error: err.message });
+    console.error('Legacy processing failed');
+    return res.status(err.statusCode || 500).json({ error: 'PROCESSING_FAILED' });
   }
 });
 
@@ -534,8 +535,8 @@ async function heroVariantHandler(variant, req, res) {
     }
     return res.json({ width: heroEngine.FINAL_SIZE, height: heroEngine.FINAL_SIZE, format: 'png', meta, image: output.toString('base64') });
   } catch (err) {
-    console.error(`[hero-${variant}]`, err);
-    return res.status(err.statusCode || 500).json({ error: err.message });
+    console.error('Hero candidate processing failed');
+    return res.status(err.statusCode || 500).json({ error: 'PROCESSING_FAILED' });
   }
 }
 
@@ -567,6 +568,11 @@ app.post('/catalog', (req, res, next) => {
   });
 }, catalog.createHandler());
 
+app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
+  res.status(err.statusCode || err.status || 500).json({ error: 'REQUEST_FAILED', asset_state: 'CANDIDATE_ONLY', final_approval: false });
+});
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => console.log(`gleor-canvas running on ${PORT}`));
+if (require.main === module) app.listen(PORT, () => console.log(`gleor-canvas running on ${PORT}`));
+module.exports = app;

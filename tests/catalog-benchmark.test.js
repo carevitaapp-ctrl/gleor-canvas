@@ -20,6 +20,8 @@ function load(relative, allowed) {
     process: { env: { OPENAI_API_KEY: 'offline-placeholder' } },
     console,
     require(name) {
+      if (name === '../production/policy') return require('./helpers/legacy-policy-fixture');
+      if (name === '../production/http' || name === './production/http') return { certifyResponse() {}, protect(req,res,next) { next(); } };
       if (!Object.hasOwn(allowed, name)) throw new Error(`Forbidden dependency in offline test: ${name}`);
       return allowed[name];
     },
@@ -359,7 +361,7 @@ test('HTTP zero retry header is honored and other values fail before providers',
   assert.equal(body.retry_count, 0);
   assert.equal(body.retry_limit, 0);
   assert.equal(body.verdict, 'manual_review');
-  assert.equal(crypto.createHash('sha256').update(Buffer.from(body.artifacts.render_candidate_base64, 'base64')).digest('hex'), body.artifacts.final_metadata.hashes.render_candidate_sha256);
+  assert.equal(crypto.createHash('sha256').update(Buffer.from(body.artifacts.render_candidate_base64, 'base64')).digest('hex'), body.artifacts.candidate_metadata.hashes.render_candidate_sha256);
   assert.equal(body.artifacts.qa_report.final_approval, false);
-  assert.equal(body.artifacts.final_metadata.retry_count, 0);
+  assert.equal(body.artifacts.candidate_metadata.retry_count, 0);
 });

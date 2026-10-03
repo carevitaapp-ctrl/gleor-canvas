@@ -16,15 +16,19 @@ const {
 const LAYER_A_PROMPT_PATH = path.join(__dirname, '..', 'prompts', 'qa', 'sku-fidelity.txt');
 const LAYER_B_PROMPT_PATH = path.join(__dirname, '..', 'prompts', 'qa', 'catalog-quality.txt');
 
-async function runCatalogQA({ originalBuffer, originalMediaType, finalBuffer, truth, openaiKey, masterCleanBuffer }) {
+async function runCatalogQA({ originalBuffer, originalMediaType, finalBuffer, truth, openaiKey, masterCleanBuffer, onGate = () => {} }) {
   if (!openaiKey) throw new Error('runCatalogQA: openaiKey required');
   if (!Buffer.isBuffer(originalBuffer)) throw new Error('runCatalogQA: originalBuffer must be a Buffer');
   if (!Buffer.isBuffer(finalBuffer)) throw new Error('runCatalogQA: finalBuffer must be a Buffer');
 
+  onGate('GATE_A', 'RUNNING');
   const gate_a = await runLayerA({ originalBuffer, originalMediaType, finalBuffer, truth, openaiKey, masterCleanBuffer });
+  onGate('GATE_A', gate_a.status);
+  onGate('GATE_B', gate_a.status === 'PASS' ? 'RUNNING' : 'NOT_RUN');
   const gate_b = gate_a.status === 'PASS'
     ? await runLayerB({ originalBuffer, originalMediaType, finalBuffer, truth, openaiKey })
     : { status: 'NOT_RUN', criteria: {}, failures: [], model: null, usage: null, durationMs: 0 };
+  onGate('GATE_B', gate_b.status);
   const final_approval = gate_a.status === 'PASS' && gate_b.status === 'PASS';
   return { gate_a, gate_b, final_approval, verdict: decideVerdict(gate_a, gate_b) };
 }

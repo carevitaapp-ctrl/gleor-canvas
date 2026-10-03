@@ -1,9 +1,10 @@
 // catalog/writer.js
 // Input Contract V2: immutable inputs are stored before providers run.
 // Stage 7 emits the result bundle, referencing these authoritative input bytes.
-// Approved outputs land under outputs/<sku>/. Non-approved outputs land under
-// renders/manual/<sku>/ with an extra manual-review-reasons.json file.
+// Capability-authorized releases use outputs/<sku>/<run>/. Candidates use
+// renders/manual/<sku>/<run>/. release.json is written last; no bundle is overwritten.
 
+const { authorized } = require('../production/policy');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -86,6 +87,7 @@ function writeInputs({ originalRaw, masterClean }) {
 
 function writeBundle({
   sku,
+  release,
   verdict,
   inputAssets,
   productTruth,
@@ -95,23 +97,27 @@ function writeBundle({
   finalMetadata,
   manualReviewReasons,
 }) {
-  if (!sku) throw new Error('writeBundle: sku required');
-  const root = verdict === 'approved' ? OUTPUTS_ROOT : MANUAL_ROOT;
-  const dir = path.join(root, sku);
+  if (typeof sku !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(sku)) throw new Error('writeBundle: safe sku required');
+  const released = authorized(release, finalPng);
+  if ((verdict === 'approved' || finalMetadata?.final_approval) && !released) throw new Error('Publication requires a live RELEASE_GATE capability');
+  const root = released ? OUTPUTS_ROOT : MANUAL_ROOT;
+  // Unique per-run storage; no previous output can be replaced by another run.
+  const dir = path.join(root, sku, crypto.randomUUID());
   fs.mkdirSync(dir, { recursive: true });
 
   const truthPath    = path.join(dir, 'product-truth.json');
   const promptPath   = path.join(dir, 'prompt.txt');
-  const finalPath    = path.join(dir, 'final.png');
+  const finalPath    = path.join(dir, released ? 'final.png' : 'candidate.png');
   const qaPath       = path.join(dir, 'qa-report.json');
-  const metadataPath = path.join(dir, 'final-metadata.json');
+  const metadataPath = path.join(dir, released ? 'final-metadata.json' : 'candidate-metadata.json');
   const reasonsPath  = path.join(dir, 'manual-review-reasons.json');
 
-  fs.writeFileSync(truthPath,    JSON.stringify(productTruth,  null, 2) + '\n');
-  fs.writeFileSync(promptPath,   promptText);
-  fs.writeFileSync(finalPath,    finalPng);
-  fs.writeFileSync(qaPath,       JSON.stringify(qaReport,      null, 2) + '\n');
-  fs.writeFileSync(metadataPath, JSON.stringify(finalMetadata, null, 2) + '\n');
+  const write = (file, bytes) => fs.writeFileSync(file, bytes, { flag: 'wx', mode: 0o444 });
+  write(truthPath,    JSON.stringify(productTruth,  null, 2) + '\n');
+  write(promptPath,   promptText);
+  write(finalPath,    finalPng);
+  write(qaPath,       JSON.stringify(qaReport,      null, 2) + '\n');
+  write(metadataPath, JSON.stringify(finalMetadata, null, 2) + '\n');
 
   const files = {
     original_raw: inputAssets.original_raw.path,
@@ -120,18 +126,20 @@ function writeBundle({
     render_candidate: finalPath,
     productTruth: truthPath,
     prompt: promptPath,
-    final: finalPath,
+    ...(released ? { final: finalPath } : {}),
     qaReport: qaPath,
     finalMetadata: metadataPath,
     manualReviewReasons: null,
   };
 
   if (verdict !== 'approved' && manualReviewReasons) {
-    fs.writeFileSync(reasonsPath, JSON.stringify(manualReviewReasons, null, 2) + '\n');
+    write(reasonsPath, JSON.stringify(manualReviewReasons, null, 2) + '\n');
     files.manualReviewReasons = reasonsPath;
   }
 
-  return { dir, files };
+  // This manifest is the publication boundary and is written LAST. Partial bundles are not releases.
+  if (released) write(path.join(dir, 'release.json'), JSON.stringify({ asset_state: 'RELEASED', candidate_sha256: sha256(finalPng), production: release }, null, 2));
+  return { dir, files, asset_state: released ? 'RELEASED' : 'CANDIDATE_ONLY' };
 }
 
 function sha256(buf) {
@@ -139,4 +147,12 @@ function sha256(buf) {
   return crypto.createHash('sha256').update(b).digest('hex');
 }
 
-module.exports = { writeInputs, writeBundle, sha256 };
+function writeFailure(production) {
+  if (!production || !/^[a-f0-9-]{36}$/.test(production.run_id) || production.publication_authorized !== false) throw Error('Invalid failed-run evidence');
+  const dir = path.join(MANUAL_ROOT, 'failed-runs', production.run_id);
+  fs.mkdirSync(dir, { recursive: true });
+  const file = path.join(dir, 'production-state.json');
+  fs.writeFileSync(file, JSON.stringify(production, null, 2) + '\n', { flag: 'wx', mode: 0o444 });
+  return file;
+}
+module.exports = { writeInputs, writeBundle, writeFailure, sha256 };

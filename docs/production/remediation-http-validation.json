@@ -1,0 +1,1348 @@
+{
+  "runtime": "2.0.0",
+  "validation": "actual loopback HTTP; provider transport stubbed",
+  "external_provider_calls": 0,
+  "cases": [
+    {
+      "name": "insufficient reconstruction",
+      "request": {
+        "method": "POST",
+        "path": "/catalog",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {
+          "transformation": "reconstruction"
+        }
+      },
+      "http_status": 422,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "reasons": [
+          "INSUFFICIENT_SOURCE_IDENTITY"
+        ],
+        "status": "FAIL"
+      },
+      "transitions": [
+        {
+          "stage": "REQUEST",
+          "status": "PASS"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "FAIL"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "FAIL"
+        },
+        {
+          "stage": "PRESENTATION_RECONSTRUCTION_AUTHORIZATION",
+          "status": "FAIL"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "FAIL"
+        }
+      ],
+      "mocked_analyses": [
+        "production_source"
+      ],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "structural identity mismatch",
+      "request": {
+        "method": "POST",
+        "path": "/catalog",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {}
+      },
+      "http_status": 422,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "reasons": [
+          "LOCKED_IDENTITY_MISMATCH_OR_UNKNOWN"
+        ],
+        "status": "FAIL"
+      },
+      "transitions": [
+        {
+          "stage": "REQUEST",
+          "status": "PASS"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "PASS"
+        },
+        {
+          "stage": "PRODUCT_TRUTH",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "PRODUCT_TRUTH",
+          "status": "PASS"
+        },
+        {
+          "stage": "STRUCTURE_CHECK",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_PRODUCT_TRUTH_INSPECTION",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_IDENTITY_LOCK",
+          "status": "PASS"
+        },
+        {
+          "stage": "PRESENTATION_RECONSTRUCTION_AUTHORIZATION",
+          "status": "NOT_REQUIRED"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RENDER",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RENDER",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "FAIL"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "FAIL"
+        }
+      ],
+      "mocked_analyses": [
+        "production_source",
+        "product_truth",
+        "production_comparison"
+      ],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "finish registration failure",
+      "request": {
+        "method": "POST",
+        "path": "/catalog",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {
+          "finish_id": "unknown"
+        }
+      },
+      "http_status": 422,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "reasons": [
+          "UNREGISTERED_FINISH_OR_REVISION"
+        ],
+        "status": "FAIL"
+      },
+      "transitions": [
+        {
+          "stage": "REQUEST",
+          "status": "PASS"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "FAIL"
+        },
+        {
+          "stage": "PRESENTATION_RECONSTRUCTION_AUTHORIZATION",
+          "status": "FAIL"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "ERROR"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "FAIL"
+        }
+      ],
+      "mocked_analyses": [],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "finish registration failure",
+      "request": {
+        "method": "POST",
+        "path": "/catalog",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {
+          "finish_revision": "999"
+        }
+      },
+      "http_status": 422,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "reasons": [
+          "UNREGISTERED_FINISH_OR_REVISION"
+        ],
+        "status": "FAIL"
+      },
+      "transitions": [
+        {
+          "stage": "REQUEST",
+          "status": "PASS"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "FAIL"
+        },
+        {
+          "stage": "PRESENTATION_RECONSTRUCTION_AUTHORIZATION",
+          "status": "FAIL"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "ERROR"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "FAIL"
+        }
+      ],
+      "mocked_analyses": [],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "Gate A failure",
+      "request": {
+        "method": "POST",
+        "path": "/catalog",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {}
+      },
+      "http_status": 200,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "reasons": [
+          "GATE_A:FAIL",
+          "GATE_B:NOT_RUN",
+          "CATALOG_NOT_APPROVED",
+          "GATE_B:CANDIDATE_BINDING_MISSING"
+        ],
+        "status": "FAIL"
+      },
+      "transitions": [
+        {
+          "stage": "REQUEST",
+          "status": "PASS"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "PASS"
+        },
+        {
+          "stage": "PRODUCT_TRUTH",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "PRODUCT_TRUTH",
+          "status": "PASS"
+        },
+        {
+          "stage": "STRUCTURE_CHECK",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_PRODUCT_TRUTH_INSPECTION",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_IDENTITY_LOCK",
+          "status": "PASS"
+        },
+        {
+          "stage": "PRESENTATION_RECONSTRUCTION_AUTHORIZATION",
+          "status": "NOT_REQUIRED"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RENDER",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RENDER",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "PASS"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "PASS"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "FAIL"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "FAIL"
+        }
+      ],
+      "mocked_analyses": [
+        "production_source",
+        "product_truth",
+        "production_comparison",
+        "gate_a"
+      ],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "Gate B failure",
+      "request": {
+        "method": "POST",
+        "path": "/catalog",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {}
+      },
+      "http_status": 200,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "reasons": [
+          "GATE_B:FAIL",
+          "CATALOG_NOT_APPROVED"
+        ],
+        "status": "FAIL"
+      },
+      "transitions": [
+        {
+          "stage": "REQUEST",
+          "status": "PASS"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "PASS"
+        },
+        {
+          "stage": "PRODUCT_TRUTH",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "PRODUCT_TRUTH",
+          "status": "PASS"
+        },
+        {
+          "stage": "STRUCTURE_CHECK",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_PRODUCT_TRUTH_INSPECTION",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_IDENTITY_LOCK",
+          "status": "PASS"
+        },
+        {
+          "stage": "PRESENTATION_RECONSTRUCTION_AUTHORIZATION",
+          "status": "NOT_REQUIRED"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RENDER",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RENDER",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "PASS"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "PASS"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "PASS"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "FAIL"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "FAIL"
+        }
+      ],
+      "mocked_analyses": [
+        "production_source",
+        "product_truth",
+        "production_comparison",
+        "gate_a",
+        "gate_b"
+      ],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "review candidate",
+      "request": {
+        "method": "POST",
+        "path": "/catalog",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {}
+      },
+      "http_status": 200,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "reasons": [
+          "GATE_B:FAIL",
+          "CATALOG_NOT_APPROVED"
+        ],
+        "status": "FAIL"
+      },
+      "transitions": [
+        {
+          "stage": "REQUEST",
+          "status": "PASS"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "PASS"
+        },
+        {
+          "stage": "PRODUCT_TRUTH",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "PRODUCT_TRUTH",
+          "status": "PASS"
+        },
+        {
+          "stage": "STRUCTURE_CHECK",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_PRODUCT_TRUTH_INSPECTION",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_IDENTITY_LOCK",
+          "status": "PASS"
+        },
+        {
+          "stage": "PRESENTATION_RECONSTRUCTION_AUTHORIZATION",
+          "status": "NOT_REQUIRED"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RENDER",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RENDER",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "PASS"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "PASS"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "PASS"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "FAIL"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "FAIL"
+        }
+      ],
+      "mocked_analyses": [
+        "production_source",
+        "product_truth",
+        "production_comparison",
+        "gate_a",
+        "gate_b"
+      ],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "alternate endpoint",
+      "request": {
+        "method": "POST",
+        "path": "/hero",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {}
+      },
+      "http_status": 422,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "status": "FAIL",
+        "reasons": [
+          "NON_PRODUCTION_ROUTE"
+        ]
+      },
+      "transitions": [],
+      "mocked_analyses": [],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "alternate endpoint",
+      "request": {
+        "method": "POST",
+        "path": "/hero-a",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {}
+      },
+      "http_status": 200,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "status": "FAIL",
+        "reasons": [
+          "NON_PRODUCTION_ROUTE"
+        ]
+      },
+      "transitions": [],
+      "mocked_analyses": [],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "alternate endpoint",
+      "request": {
+        "method": "POST",
+        "path": "/hero-b",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {}
+      },
+      "http_status": 200,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "status": "FAIL",
+        "reasons": [
+          "NON_PRODUCTION_ROUTE"
+        ]
+      },
+      "transitions": [],
+      "mocked_analyses": [],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "alternate endpoint",
+      "request": {
+        "method": "POST",
+        "path": "/hero-c",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {}
+      },
+      "http_status": 200,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "status": "FAIL",
+        "reasons": [
+          "NON_PRODUCTION_ROUTE"
+        ]
+      },
+      "transitions": [],
+      "mocked_analyses": [],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "alternate endpoint",
+      "request": {
+        "method": "POST",
+        "path": "/process",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {}
+      },
+      "http_status": 200,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "status": "FAIL",
+        "reasons": [
+          "NON_PRODUCTION_ROUTE"
+        ]
+      },
+      "transitions": [],
+      "mocked_analyses": [],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "alternate endpoint",
+      "request": {
+        "method": "POST",
+        "path": "/HERO-C/",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {}
+      },
+      "http_status": 200,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "status": "FAIL",
+        "reasons": [
+          "NON_PRODUCTION_ROUTE"
+        ]
+      },
+      "transitions": [],
+      "mocked_analyses": [],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "binary candidate",
+      "request": {
+        "method": "POST",
+        "path": "/hero-c",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {}
+      },
+      "http_status": 200,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "status": "FAIL"
+      },
+      "transitions": [],
+      "mocked_analyses": [],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "compliant preservation",
+      "request": {
+        "method": "POST",
+        "path": "/catalog",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {}
+      },
+      "http_status": 200,
+      "asset_state": "RELEASED",
+      "release_gate": {
+        "reasons": [],
+        "status": "PASS"
+      },
+      "transitions": [
+        {
+          "stage": "REQUEST",
+          "status": "PASS"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "PASS"
+        },
+        {
+          "stage": "PRODUCT_TRUTH",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "PRODUCT_TRUTH",
+          "status": "PASS"
+        },
+        {
+          "stage": "STRUCTURE_CHECK",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_PRODUCT_TRUTH_INSPECTION",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_IDENTITY_LOCK",
+          "status": "PASS"
+        },
+        {
+          "stage": "PRESENTATION_RECONSTRUCTION_AUTHORIZATION",
+          "status": "NOT_REQUIRED"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RENDER",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RENDER",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "PASS"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "PASS"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "PASS"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "PASS"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "PASS"
+        }
+      ],
+      "mocked_analyses": [
+        "production_source",
+        "product_truth",
+        "production_comparison",
+        "gate_a",
+        "gate_b"
+      ],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "forged authorization",
+      "request": {
+        "method": "POST",
+        "path": "/catalog",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {
+          "transformation": "reconstruction",
+          "authorized": true
+        }
+      },
+      "http_status": 400,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "reasons": [
+          "INVALID_REQUEST"
+        ],
+        "status": "FAIL"
+      },
+      "transitions": [
+        {
+          "stage": "REQUEST",
+          "status": "PASS"
+        },
+        {
+          "stage": "PRESENTATION_RECONSTRUCTION_AUTHORIZATION",
+          "status": "FAIL"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "FAIL"
+        }
+      ],
+      "mocked_analyses": [],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "malformed request",
+      "request": {
+        "method": "POST",
+        "path": "/process",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {}
+      },
+      "http_status": 400,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "status": "FAIL",
+        "reasons": [
+          "NON_PRODUCTION_ROUTE"
+        ]
+      },
+      "transitions": [],
+      "mocked_analyses": [],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "compliant reconstruction",
+      "request": {
+        "method": "POST",
+        "path": "/catalog",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {
+          "transformation": "reconstruction",
+          "finish_id": "preserve-source",
+          "finish_revision": "1"
+        }
+      },
+      "http_status": 200,
+      "asset_state": "RELEASED",
+      "release_gate": {
+        "reasons": [],
+        "status": "PASS"
+      },
+      "transitions": [
+        {
+          "stage": "REQUEST",
+          "status": "PASS"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "PASS"
+        },
+        {
+          "stage": "PRODUCT_TRUTH",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "PRODUCT_TRUTH",
+          "status": "PASS"
+        },
+        {
+          "stage": "STRUCTURE_CHECK",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_PRODUCT_TRUTH_INSPECTION",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_IDENTITY_LOCK",
+          "status": "PASS"
+        },
+        {
+          "stage": "PRESENTATION_RECONSTRUCTION_AUTHORIZATION",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RENDER",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "NOT_RUN"
+        },
+        {
+          "stage": "RENDER",
+          "status": "PASS"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "MACRO_IDENTITY_CHECK",
+          "status": "PASS"
+        },
+        {
+          "stage": "FINISH_IDENTITY_CHECK",
+          "status": "PASS"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "GATE_A",
+          "status": "PASS"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "GATE_B",
+          "status": "PASS"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "PASS"
+        }
+      ],
+      "mocked_analyses": [
+        "production_source",
+        "product_truth",
+        "production_comparison",
+        "gate_a",
+        "gate_b"
+      ],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "legacy hero successful candidate",
+      "request": {
+        "method": "POST",
+        "path": "/hero",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {}
+      },
+      "http_status": 200,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "status": "FAIL"
+      },
+      "transitions": [],
+      "mocked_analyses": [],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "remediation metadata conflict",
+      "request": {
+        "method": "POST",
+        "path": "/catalog",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {}
+      },
+      "http_status": 422,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "reasons": [
+          "DECLARED_METADATA_CONFLICT"
+        ],
+        "status": "FAIL"
+      },
+      "transitions": [
+        {
+          "stage": "REQUEST",
+          "status": "PASS"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "PASS"
+        },
+        {
+          "stage": "PRODUCT_TRUTH",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "PRODUCT_TRUTH",
+          "status": "FAIL"
+        },
+        {
+          "stage": "PRESENTATION_RECONSTRUCTION_AUTHORIZATION",
+          "status": "FAIL"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "FAIL"
+        }
+      ],
+      "mocked_analyses": [
+        "production_source",
+        "product_truth"
+      ],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "remediation gemstone contradiction",
+      "request": {
+        "method": "POST",
+        "path": "/catalog",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {}
+      },
+      "http_status": 422,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "reasons": [
+          "INVALID_PRODUCT_TRUTH"
+        ],
+        "status": "FAIL"
+      },
+      "transitions": [
+        {
+          "stage": "REQUEST",
+          "status": "PASS"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "PASS"
+        },
+        {
+          "stage": "PRODUCT_TRUTH",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "PRESENTATION_RECONSTRUCTION_AUTHORIZATION",
+          "status": "FAIL"
+        },
+        {
+          "stage": "PRODUCT_TRUTH",
+          "status": "ERROR"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "FAIL"
+        }
+      ],
+      "mocked_analyses": [
+        "production_source",
+        "product_truth"
+      ],
+      "external_provider_calls": 0
+    },
+    {
+      "name": "remediation gemstone contradiction",
+      "request": {
+        "method": "POST",
+        "path": "/catalog",
+        "fixture": "synthetic RAW/Clean; no user assets",
+        "production_options": {}
+      },
+      "http_status": 422,
+      "asset_state": "CANDIDATE_ONLY",
+      "release_gate": {
+        "reasons": [
+          "INVALID_PRODUCT_TRUTH"
+        ],
+        "status": "FAIL"
+      },
+      "transitions": [
+        {
+          "stage": "REQUEST",
+          "status": "PASS"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "SOURCE_SUFFICIENCY",
+          "status": "PASS"
+        },
+        {
+          "stage": "PRODUCT_TRUTH",
+          "status": "RUNNING"
+        },
+        {
+          "stage": "PRESENTATION_RECONSTRUCTION_AUTHORIZATION",
+          "status": "FAIL"
+        },
+        {
+          "stage": "PRODUCT_TRUTH",
+          "status": "ERROR"
+        },
+        {
+          "stage": "RELEASE_GATE",
+          "status": "FAIL"
+        }
+      ],
+      "mocked_analyses": [
+        "production_source",
+        "product_truth"
+      ],
+      "external_provider_calls": 0
+    }
+  ]
+}

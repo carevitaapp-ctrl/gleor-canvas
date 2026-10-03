@@ -1,0 +1,90 @@
+{
+  "count": 21,
+  "all_preserved": true,
+  "files": {
+    "gleor-api.js": {
+      "starting_sha256": "840e3a4312c7aa6e355488346952f8ecada152e484eeac36ec5f039d111fdd87",
+      "ending_sha256": "840e3a4312c7aa6e355488346952f8ecada152e484eeac36ec5f039d111fdd87"
+    },
+    "gleor-api2.js": {
+      "starting_sha256": "aabfa3366228cdfd273b6814761490d050043b2d4b08d0a193f3267121802159",
+      "ending_sha256": "aabfa3366228cdfd273b6814761490d050043b2d4b08d0a193f3267121802159"
+    },
+    "gleor-api3.js": {
+      "starting_sha256": "359ece3e597ef5f6e517c5606593f0253aa17c70e821a6c35dbbf502f5455557",
+      "ending_sha256": "359ece3e597ef5f6e517c5606593f0253aa17c70e821a6c35dbbf502f5455557"
+    },
+    "gleor-api4.js": {
+      "starting_sha256": "17ede1c2c0eacb870ec715bd3edd0f7a7c95fb5dadc3aac0707f8d2bb58aad42",
+      "ending_sha256": "17ede1c2c0eacb870ec715bd3edd0f7a7c95fb5dadc3aac0707f8d2bb58aad42"
+    },
+    "gleor-crop.js": {
+      "starting_sha256": "afe3f168262c1ac9d5b79808562c73d93f10286c3160418416a5f575f943de7c",
+      "ending_sha256": "afe3f168262c1ac9d5b79808562c73d93f10286c3160418416a5f575f943de7c"
+    },
+    "gleor-l.js": {
+      "starting_sha256": "5140fa4f25799841a34edeaf5a38bd76989ad5059027c0a6da06068be7fe9ea1",
+      "ending_sha256": "5140fa4f25799841a34edeaf5a38bd76989ad5059027c0a6da06068be7fe9ea1"
+    },
+    "gleor-lift.js": {
+      "starting_sha256": "758329e7dc2536627d269f513aeac681bb25729c1090b4e73f41fd3c9c9bb5a5",
+      "ending_sha256": "758329e7dc2536627d269f513aeac681bb25729c1090b4e73f41fd3c9c9bb5a5"
+    },
+    "gleor-multi.js": {
+      "starting_sha256": "0ec27b22029c9088a5804c94ba07d1e97b8bc6d5cfb4adfa96c9fc0056d2a5b6",
+      "ending_sha256": "0ec27b22029c9088a5804c94ba07d1e97b8bc6d5cfb4adfa96c9fc0056d2a5b6"
+    },
+    "gleor-p.js": {
+      "starting_sha256": "8138a508d1f15a669766ed659e8f7ec6cf3396ba4bc8a2caa00d20cb5fdc00f9",
+      "ending_sha256": "8138a508d1f15a669766ed659e8f7ec6cf3396ba4bc8a2caa00d20cb5fdc00f9"
+    },
+    "gleor-p2.js": {
+      "starting_sha256": "0d7ee9a8706028932ccf2d11485b43d8d1c01cac630acf7988227fb231973b47",
+      "ending_sha256": "0d7ee9a8706028932ccf2d11485b43d8d1c01cac630acf7988227fb231973b47"
+    },
+    "gleor-relight.js": {
+      "starting_sha256": "8e9a65b2d3dc2b98853ce1cd97bf933f3e54cc22585e9d1b0d44abbdc4fe76c2",
+      "ending_sha256": "8e9a65b2d3dc2b98853ce1cd97bf933f3e54cc22585e9d1b0d44abbdc4fe76c2"
+    },
+    "gleor-relight2.js": {
+      "starting_sha256": "a484296f9029973c6a004c5a8f51c7549ab176a05f36a75c8ba3da629a978f71",
+      "ending_sha256": "a484296f9029973c6a004c5a8f51c7549ab176a05f36a75c8ba3da629a978f71"
+    },
+    "gleor-tone.js": {
+      "starting_sha256": "4e946df48190b7aa833ecb4b2cf2afea0d40523c98ac079c1fa19f1021c809ac",
+      "ending_sha256": "4e946df48190b7aa833ecb4b2cf2afea0d40523c98ac079c1fa19f1021c809ac"
+    },
+    "gpt-ring-benchmark.before-catalog-v1.mjs": {
+      "starting_sha256": "f7e3ef90f71b99a8503d9b8869dbedfbc8f7b0b5c9bc25ef2cb6fa03c6befa26",
+      "ending_sha256": "f7e3ef90f71b99a8503d9b8869dbedfbc8f7b0b5c9bc25ef2cb6fa03c6befa26"
+    },
+    "gpt-ring-benchmark.mjs": {
+      "starting_sha256": "e35a9c32c764db01efbc01476d672c7bcde83e7a3a9ac6cbe4ec78babb1ca7be",
+      "ending_sha256": "e35a9c32c764db01efbc01476d672c7bcde83e7a3a9ac6cbe4ec78babb1ca7be"
+    },
+    "heroEngine.before-beautify-c.js": {
+      "starting_sha256": "23d3367d141d28922cf40a5287da2fc3bb310eba8e40e797fa525a7ca8745a47",
+      "ending_sha256": "23d3367d141d28922cf40a5287da2fc3bb310eba8e40e797fa525a7ca8745a47"
+    },
+    "heroEngine.before-c-fix.js": {
+      "starting_sha256": "97c7d04aadf7b3b781f94e5c95486d67c8a4d243ddb8643ad4d7644ea45878ee",
+      "ending_sha256": "97c7d04aadf7b3b781f94e5c95486d67c8a4d243ddb8643ad4d7644ea45878ee"
+    },
+    "heroEngine.before-raw-test.js": {
+      "starting_sha256": "30f358b73850b9ad946c4cd996a2e0dc240315ed5e93e5b95b5aae963b041feb",
+      "ending_sha256": "30f358b73850b9ad946c4cd996a2e0dc240315ed5e93e5b95b5aae963b041feb"
+    },
+    "restoration-first.js": {
+      "starting_sha256": "36380283d4d728ec94308f700592a7bc64950beeb3684c14805f7f0c8a0968e4",
+      "ending_sha256": "36380283d4d728ec94308f700592a7bc64950beeb3684c14805f7f0c8a0968e4"
+    },
+    "server.before-beautify-c.js": {
+      "starting_sha256": "460ad65040570701b7c04657d925f07743941187e13cd8fd7a1fb11b5c28f829",
+      "ending_sha256": "460ad65040570701b7c04657d925f07743941187e13cd8fd7a1fb11b5c28f829"
+    },
+    "test-output.png": {
+      "starting_sha256": "e58134d8bba5a67e22130bc12e0789e74e2055333cd036e10340f59752666629",
+      "ending_sha256": "e58134d8bba5a67e22130bc12e0789e74e2055333cd036e10340f59752666629"
+    }
+  }
+}
