@@ -71,12 +71,13 @@ function harness(replies, models = constants) {
   const analysis = load('catalog/openaiAnalysis.js', { https, './analysisSchemas': schemaModule, './constants': models });
   const truth = load('catalog/productTruth.js', { fs, path, './constants': models, './openaiAnalysis': analysis });
   const qa = load('catalog/catalogQA.js', { fs, path, './constants': models, './openaiAnalysis': analysis });
+  let persistedCandidate;
   const raw = Buffer.from('original-raw-marker'), clean = Buffer.from('immutable-clean-marker');
   const pipeline = load('catalog/index.js', {
     './constants': models, './productTruth': truth, './catalogQA': qa,
     './metadataParser': { parseFilename: () => ({ sku: 'ring-test' }) },
     './promptBuilder': { buildPrompt: () => 'unchanged renderer prompt', resolveLayers: () => ({}) },
-    './writer': { sha256: hash, writeInputs: () => ({}), writeBundle: () => ({ dir: '/offline', files: {} }) },
+    './writer': { sha256: hash, writeInputs: () => ({}), writeBundle: ({finalPng}) => { persistedCandidate=Buffer.from(finalPng); return { dir: '/offline', files: {} }; }, readReleased: () => ({bytes:Buffer.from(persistedCandidate),manifest:{fixture:true}}) },
     './inputContract': { validateInputs: async input => input, readCatalogRequest: req => req.input },
     './gptImageEdit': { runGptImageEdit: async args => {
       rendererInputs.push(Buffer.from(args.imageBuffer));

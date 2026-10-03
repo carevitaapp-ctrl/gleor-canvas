@@ -68,12 +68,12 @@ test('visible inner-band below 95 or critical deviation still fails', () => {
 test('ring orchestrator uses real local composer, sends RAW/Clean to QA, never imports renderer or retries', async () => {
   const clean = await fixture(), raw = Buffer.from('RAW authoritative marker');
   for (const verdict of ['approved', 'retry', 'FAIL']) {
-    const module = { exports: {} }; let qaCalls = 0;
+    const module = { exports: {} }; let qaCalls = 0, persistedCandidate;
     const deps = {
       '../production/policy': require('./helpers/legacy-policy-fixture'),
       './metadataParser': { parseFilename: () => ({ category: { value: 'ring' }, sku: 'ring-test' }) },
       './promptBuilder': { buildPrompt() { throw Error('No generative prompt'); } },
-      './writer': { sha256: b => require('crypto').createHash('sha256').update(b).digest('hex'), writeInputs: () => ({}), writeBundle: () => ({}) },
+      './writer': { sha256: b => require('crypto').createHash('sha256').update(b).digest('hex'), writeInputs: () => ({}), writeBundle: ({finalPng}) => { persistedCandidate=Buffer.from(finalPng); return {}; }, readReleased: () => ({bytes:Buffer.from(persistedCandidate)}) },
       './inputContract': { validateInputs: async v => v }, './constants': C,
       './productTruth': { runProductTruth: async a => { assert.deepEqual(a.imageBuffer, raw); return { truth }; } },
       './geometryPreservingCompose': require('../catalog/geometryPreservingCompose'),

@@ -1,0 +1,37 @@
+✔ HTTP 1 insufficient reconstruction cannot reach renderer (95.299084ms)
+✔ HTTP 2 structural failure cannot release (50.672917ms)
+✔ HTTP 3 finish {"finish_id":"unknown"} fails closed (22.72925ms)
+✔ HTTP 3 finish {"finish_revision":"999"} fails closed (21.536541ms)
+✔ HTTP 4 Gate A cannot release (44.67125ms)
+✔ HTTP 4 Gate B cannot release (42.364083ms)
+✔ HTTP 5 review candidate has no final labels or final artifact path (41.729167ms)
+✔ HTTP 6 /hero cannot bypass policy (15.920458ms)
+✔ HTTP 6 /hero-a cannot bypass policy (5.3925ms)
+✔ HTTP 6 /hero-b cannot bypass policy (5.362042ms)
+✔ HTTP 6 /hero-c cannot bypass policy (4.5745ms)
+✔ HTTP 6 /process cannot bypass policy (12.297333ms)
+✔ HTTP 6 /HERO-C/ cannot bypass policy (5.086625ms)
+✔ HTTP candidate binary response carries nonproduction headers (5.252916ms)
+✔ HTTP 7 compliant path releases only after persisted release manifest (87.950333ms)
+✔ HTTP request cannot inject authorization or prompt overrides (6.284083ms)
+✔ HTTP malformed JSON has explicit denied production state (7.485792ms)
+✔ HTTP successful reconstruction still passes every stage before release (93.204625ms)
+✔ HTTP legacy hero approval is downgraded even on successful binary render (179.181458ms)
+✔ HTTP remediation conflicting filename material cannot release (35.208667ms)
+✔ HTTP remediation contradictory gemstones false/3 (37.274208ms)
+✔ HTTP remediation contradictory gemstones true/0 (35.376416ms)
+✔ HTTP release response includes manifest bound to the exact returned image bytes (90.654958ms)
+✔ HTTP refuses release when persisted manifest is missing (91.372875ms)
+✔ HTTP refuses release when persisted manifest is digest (92.346833ms)
+✔ HTTP committed release survives housekeeping remove failure (92.529459ms)
+✔ HTTP committed release survives housekeeping sync failure (91.564333ms)
+✔ HTTP rollback quarantine signal survives diagnostic persistence failure=false (84.716791ms)
+✔ HTTP rollback quarantine signal survives diagnostic persistence failure=true (83.366833ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1539.194

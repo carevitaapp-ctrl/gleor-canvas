@@ -19,7 +19,7 @@ function truth(category = 'ring') {
 function comparison(category = 'ring') { return { features: [...new Set(category === 'earring' ? [...GENERAL_FIELDS,...EARRING_FIELDS] : GENERAL_FIELDS)].map(name => ({ name, result: 'MATCH', evidence: 'Same visible fixture identity', confidence: 1 })), finish_matches_source: true, finish_evidence: 'Same RAW fixture surface', finish_confidence: 1 }; }
 function gate(layer) { return { criteria: Object.fromEntries((layer === 'A' ? C.QA_LAYER_A_CRITERIA : C.QA_LAYER_B_CRITERIA).map(k => [k, { score: 100, applicable: true, note: 'Synthetic fixture assessment', ...(layer === 'A' ? { critical_deviation: false } : {}) }])), ...(layer === 'A' ? { critical_failures: [] } : {}) }; }
 function harness(config = {}) {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'gleor-production-v2-'));
+  const directory = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'gleor-production-v2-')));
   const category = config.category || 'ring';
   const calls = []; let rendererCalls = 0;
   const replies = { production_source: source(category), product_truth: truth(category), production_comparison: comparison(category), gate_a: gate('A'), gate_b: gate('B'), ...config.replies };
@@ -48,7 +48,7 @@ function harness(config = {}) {
       if (name.startsWith('.')) { let next = path.resolve(path.dirname(file), name); if (fs.existsSync(next) && fs.statSync(next).isDirectory()) next = path.join(next, 'index.js'); if (!path.extname(next)) next += '.js'; return load(next); }
       return nativeRequire(name);
     };
-    vm.runInNewContext(fs.readFileSync(file, 'utf8'), { module, exports: module.exports, require: localRequire, __dirname: file.endsWith('/catalog/writer.js') ? path.join(directory, 'catalog') : path.dirname(file), Buffer, console, process: { env: { OPENAI_API_KEY: 'offline-fixture', PHOTOROOM_API_KEY: 'offline-fixture' } }, Date, setTimeout, clearTimeout }, { filename: file });
+    vm.runInNewContext(fs.readFileSync(file, 'utf8'), { module, exports: module.exports, require: localRequire, __dirname: file.endsWith('/catalog/writer.js') ? path.join(directory, 'catalog') : path.dirname(file), Buffer, console: config.console || console, process: { env: { OPENAI_API_KEY: 'offline-fixture', PHOTOROOM_API_KEY: 'offline-fixture' } }, Date, setTimeout, clearTimeout }, { filename: file });
     return module.exports;
   }
   return { directory, load: name => load(path.join(root, name)), calls, rendererCalls: () => rendererCalls, cleanup: () => fs.rmSync(directory, { recursive: true, force: true }) };

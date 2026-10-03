@@ -5,6 +5,7 @@
 // renders/manual/<sku>/<run>/. release.json is written last; no bundle is overwritten.
 
 const { authorized } = require('../production/policy');
+const { publishRelease, consumeRelease } = require('../production/release-store');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -100,7 +101,25 @@ function writeBundle({
   if (typeof sku !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(sku)) throw new Error('writeBundle: safe sku required');
   const released = authorized(release, finalPng);
   if ((verdict === 'approved' || finalMetadata?.final_approval) && !released) throw new Error('Publication requires a live RELEASE_GATE capability');
-  const root = released ? OUTPUTS_ROOT : MANUAL_ROOT;
+  if (released) {
+    if (verdict !== 'approved' || finalMetadata?.final_approval !== true) throw Error('Inconsistent release approval');
+    const assets = {
+      'final.png': finalPng,
+      'product-truth.json': JSON.stringify(productTruth, null, 2) + '\n',
+      'prompt.txt': promptText,
+      'qa-report.json': JSON.stringify(qaReport, null, 2) + '\n',
+      'final-metadata.json': JSON.stringify(finalMetadata, null, 2) + '\n',
+    };
+    const { dir, manifestPath, housekeeping_status, cleanup_pending, warnings } = publishRelease({ root: OUTPUTS_ROOT, sku, release, assets });
+    return { dir, asset_state: 'RELEASED', release_manifest: manifestPath, housekeeping_status, cleanup_pending, warnings, files: {
+      original_raw: inputAssets.original_raw.path, master_clean_png: inputAssets.master_clean_png.path,
+      input_manifest: inputAssets.manifest_path, render_candidate: path.join(dir, 'final.png'),
+      final: path.join(dir, 'final.png'), productTruth: path.join(dir, 'product-truth.json'),
+      prompt: path.join(dir, 'prompt.txt'), qaReport: path.join(dir, 'qa-report.json'),
+      finalMetadata: path.join(dir, 'final-metadata.json'), manualReviewReasons: null,
+    } };
+  }
+  const root = MANUAL_ROOT;
   // Unique per-run storage; no previous output can be replaced by another run.
   const dir = path.join(root, sku, crypto.randomUUID());
   fs.mkdirSync(dir, { recursive: true });
@@ -137,8 +156,8 @@ function writeBundle({
     files.manualReviewReasons = reasonsPath;
   }
 
-  // This manifest is the publication boundary and is written LAST. Partial bundles are not releases.
-  if (released) write(path.join(dir, 'release.json'), JSON.stringify({ asset_state: 'RELEASED', candidate_sha256: sha256(finalPng), production: release }, null, 2));
+  // Candidates deliberately have no release manifest.
+
   return { dir, files, asset_state: released ? 'RELEASED' : 'CANDIDATE_ONLY' };
 }
 
@@ -155,4 +174,5 @@ function writeFailure(production) {
   fs.writeFileSync(file, JSON.stringify(production, null, 2) + '\n', { flag: 'wx', mode: 0o444 });
   return file;
 }
-module.exports = { writeInputs, writeBundle, writeFailure, sha256 };
+function readReleased(sku, runId) { return consumeRelease({ root: OUTPUTS_ROOT, sku, runId }); }
+module.exports = { writeInputs, writeBundle, writeFailure, sha256, readReleased };

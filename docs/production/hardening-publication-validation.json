@@ -1,0 +1,108 @@
+{
+  "base_head": "1abac9e2cb2167f7220fbee3edd3a7795749a193",
+  "tests": {
+    "rollback": {
+      "tests": 3,
+      "pass": 3,
+      "fail": 0
+    },
+    "focused": {
+      "tests": 77,
+      "pass": 77,
+      "fail": 0
+    },
+    "full": {
+      "tests": 242,
+      "pass": 242,
+      "fail": 0
+    },
+    "http": {
+      "tests": 29,
+      "pass": 29,
+      "fail": 0
+    }
+  },
+  "external_provider_calls": 0,
+  "guard": "external transport guard preloaded; provider boundaries mocked; actual local filesystem and loopback HTTP",
+  "original_21_preserved_untracked": true,
+  "original_21_sha256": {
+    "gleor-api.js": "840e3a4312c7aa6e355488346952f8ecada152e484eeac36ec5f039d111fdd87",
+    "gleor-api2.js": "aabfa3366228cdfd273b6814761490d050043b2d4b08d0a193f3267121802159",
+    "gleor-api3.js": "359ece3e597ef5f6e517c5606593f0253aa17c70e821a6c35dbbf502f5455557",
+    "gleor-api4.js": "17ede1c2c0eacb870ec715bd3edd0f7a7c95fb5dadc3aac0707f8d2bb58aad42",
+    "gleor-crop.js": "afe3f168262c1ac9d5b79808562c73d93f10286c3160418416a5f575f943de7c",
+    "gleor-l.js": "5140fa4f25799841a34edeaf5a38bd76989ad5059027c0a6da06068be7fe9ea1",
+    "gleor-lift.js": "758329e7dc2536627d269f513aeac681bb25729c1090b4e73f41fd3c9c9bb5a5",
+    "gleor-multi.js": "0ec27b22029c9088a5804c94ba07d1e97b8bc6d5cfb4adfa96c9fc0056d2a5b6",
+    "gleor-p.js": "8138a508d1f15a669766ed659e8f7ec6cf3396ba4bc8a2caa00d20cb5fdc00f9",
+    "gleor-p2.js": "0d7ee9a8706028932ccf2d11485b43d8d1c01cac630acf7988227fb231973b47",
+    "gleor-relight.js": "8e9a65b2d3dc2b98853ce1cd97bf933f3e54cc22585e9d1b0d44abbdc4fe76c2",
+    "gleor-relight2.js": "a484296f9029973c6a004c5a8f51c7549ab176a05f36a75c8ba3da629a978f71",
+    "gleor-tone.js": "4e946df48190b7aa833ecb4b2cf2afea0d40523c98ac079c1fa19f1021c809ac",
+    "gpt-ring-benchmark.before-catalog-v1.mjs": "f7e3ef90f71b99a8503d9b8869dbedfbc8f7b0b5c9bc25ef2cb6fa03c6befa26",
+    "gpt-ring-benchmark.mjs": "e35a9c32c764db01efbc01476d672c7bcde83e7a3a9ac6cbe4ec78babb1ca7be",
+    "heroEngine.before-beautify-c.js": "23d3367d141d28922cf40a5287da2fc3bb310eba8e40e797fa525a7ca8745a47",
+    "heroEngine.before-c-fix.js": "97c7d04aadf7b3b781f94e5c95486d67c8a4d243ddb8643ad4d7644ea45878ee",
+    "heroEngine.before-raw-test.js": "30f358b73850b9ad946c4cd996a2e0dc240315ed5e93e5b95b5aae963b041feb",
+    "restoration-first.js": "36380283d4d728ec94308f700592a7bc64950beeb3684c14805f7f0c8a0968e4",
+    "server.before-beautify-c.js": "460ad65040570701b7c04657d925f07743941187e13cd8fd7a1fb11b5c28f829",
+    "test-output.png": "e58134d8bba5a67e22130bc12e0789e74e2055333cd036e10340f59752666629"
+  },
+  "validated_source_sha256": {
+    "catalog/index.js": "5a6444a932b86b2be013f2d5c2a7d48e76bacd25a0345d3a1de8d38ecca9a24e",
+    "catalog/writer.js": "d028b496790dd467be4553506b682f12f5558a146fc0510125de5b87f0755f4c",
+    "production/release-store.js": "c1112389eb396ed0d231016b236400af5e6d58a215f2ccb20099d9b4f930fa18",
+    "production/strict-json.js": "4b777cc8ed66a44738646be790ab260555bbe8e374eca65c289be0bb4049fcac",
+    "tests/catalog-benchmark.test.js": "291d360996f618ea114726e483184d38b1b25dc031203618eb0fc9e1cb98acd4",
+    "tests/catalog-geometry-preserving.test.js": "640d8a25936a203acb42e4d62f5a73bb3bdb8bfae91c4f07eaffb7c6ce7fb88c",
+    "tests/catalog-input-contract.test.js": "9245ab96cc269192c7110808a4935b1d4a3bba2902324ad33f558cdab56c365b",
+    "tests/catalog-openai-analysis.test.js": "d5be0df56fa832e1ade0105815feeb8fb371a2388332a6423f1b917ba24641cd",
+    "tests/helpers/legacy-release-store-fixture.js": "aef0cbc433e800b9da2822392c7a96da5f6d08c5329451fc05ce8e83d38bb3d6",
+    "tests/helpers/production-harness.js": "89ae18a1831dc22a88407780bf64969f78a9e649366d7b5ab4173cb6900c5d53",
+    "tests/helpers/rollback-fault.js": "85f2c3568fc8183dd8c194a5eee392bfd93441fbb36dfa1e46226dd57be7d30c",
+    "tests/production-http.test.js": "915e42957d65595cf912b701f2be2644750ce2607c9db7963d0f6f1a9f33cb81",
+    "tests/release-store.test.js": "5acd54b22a0664e0af3b815a3208c0e98b84761b245b66242975c235bc7e65d5",
+    "tests/rollback-observability.test.js": "50cf2f2ecd31807c0a0869d273f02d7d4c8d64d61d52b3935857c7b1106b093f",
+    "tests/strict-json.test.js": "2a41c4aaeaa30815ac4e4bf89c9b446d9f2f1f5d04daebfa5fda90c6df2c63d5"
+  },
+  "intended_files": [
+    "catalog/index.js",
+    "catalog/writer.js",
+    "docs/production/downstream-readiness.md",
+    "docs/production/hardening-publication-focused-tests.txt",
+    "docs/production/hardening-publication-full-tests.txt",
+    "docs/production/hardening-publication-http-tests.txt",
+    "docs/production/hardening-publication-rollback-tests.txt",
+    "docs/production/hardening-publication-validation.json",
+    "docs/production/readiness-focused-tests.txt",
+    "docs/production/readiness-full-tests.txt",
+    "docs/production/readiness-http-tests.txt",
+    "docs/production/readiness-remediation-commit-tests.txt",
+    "docs/production/readiness-remediation-focused-tests.txt",
+    "docs/production/readiness-remediation-full-tests.txt",
+    "docs/production/readiness-remediation-http-tests.txt",
+    "docs/production/readiness-remediation-parser-tests.txt",
+    "docs/production/readiness-remediation-validation.json",
+    "docs/production/readiness-validation.json",
+    "production/release-store.js",
+    "production/strict-json.js",
+    "tests/catalog-benchmark.test.js",
+    "tests/catalog-geometry-preserving.test.js",
+    "tests/catalog-input-contract.test.js",
+    "tests/catalog-openai-analysis.test.js",
+    "tests/helpers/legacy-release-store-fixture.js",
+    "tests/helpers/production-harness.js",
+    "tests/helpers/rollback-fault.js",
+    "tests/production-http.test.js",
+    "tests/release-store.test.js",
+    "tests/rollback-observability.test.js",
+    "tests/strict-json.test.js"
+  ],
+  "static_check": {
+    "rollback_signal_persisted": true,
+    "independent_sanitized_logging": true,
+    "http_fail_closed": true,
+    "post_commit_housekeeping_separate": true
+  },
+  "deployment_performed": false
+}

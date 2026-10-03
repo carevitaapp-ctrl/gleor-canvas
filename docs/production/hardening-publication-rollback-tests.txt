@@ -1,0 +1,11 @@
+✔ rollback observability: successful revocation (149.933125ms)
+✔ rollback observability: failed revocation (100.1475ms)
+✔ rollback observability: independent fallback (81.504084ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 383.283958

@@ -1,0 +1,19 @@
+✔ publication fails closed on asset write (162.065708ms)
+✔ publication fails closed on manifest write (134.623917ms)
+✔ publication fails closed on partial link (130.565041ms)
+✔ publication fails closed on manifest link (143.879625ms)
+✔ publication fails closed on directory sync (134.096459ms)
+✔ post-marker sync failure revokes release marker (139.802333ms)
+✔ tampered bytes between linking and publication are rejected (139.838167ms)
+✔ remediation commit preserves success after housekeeping remove failure (138.36225ms)
+✔ remediation commit preserves success after housekeeping sync failure (135.599125ms)
+✔ remediation commit asset fsync failure is critical and cannot publish (103.220875ms)
+✔ remediation commit response-validation exception cannot retroactively abort durable release (91.591459ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1508.907458

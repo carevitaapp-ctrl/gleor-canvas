@@ -11,22 +11,37 @@
 const { ProductionRun } = require('../production/policy');
 const { parseFilename }   = require('./metadataParser');
 const { buildPrompt, resolveLayers } = require('./promptBuilder');
-const { writeInputs, writeBundle, writeFailure, sha256 } = require('./writer');
+const { writeInputs, writeBundle, writeFailure, sha256, readReleased } = require('./writer');
 const { readCatalogRequest, validateInputs } = require('./inputContract');
 const { PIPELINE_VERSION, MAX_RETRIES, MODELS } = require('./constants');
 
 async function runCatalogPipeline(args) {
   const production = new ProductionRun(args.productionOptions);
-  try { return await executeCatalog(args, production); }
+  const publication = { committed: false };
+  try { return await executeCatalog(args, production, publication); }
   catch (err) {
+    // A durable release cannot be retroactively aborted by response preparation.
+    // The handler still fails closed if persisted response validation fails.
+    if (publication.committed) throw err;
     production.abort(err.code || 'PIPELINE_ERROR');
     err.production = production.snapshot();
-    try { if (writeFailure) err.diagnostic_path = writeFailure(err.production); }
-    catch (_) { /* Persistence failure never grants authorization or hides the original failure. */ }
+    const failure = sanitizedPublicationFailure(err.publication_failure, err.production.run_id);
+    err.publication_failure = failure;
+    try {
+      if (typeof writeFailure !== 'function') throw Error('DIAGNOSTIC_UNAVAILABLE');
+      err.diagnostic_path = writeFailure({ ...err.production, ...(failure ? { publication_failure: failure } : {}) });
+    } catch (_) {
+      // Independent operational signal; never include raw errors, paths or manifests.
+      if (failure?.quarantine_required) {
+        const event = JSON.stringify({ event: 'RELEASE_ROLLBACK_FAILED', ...failure });
+        try { console.error(event); }
+        catch (_) { try { process.stderr.write(event + '\n'); } catch (_) { /* Both logging sinks unavailable. */ } }
+      }
+    }
     throw err;
   }
 }
-async function executeCatalog({ originalRaw, masterClean, inputManifest, openaiKey, retryLimit = MAX_RETRIES }, production) {
+async function executeCatalog({ originalRaw, masterClean, inputManifest, openaiKey, retryLimit = MAX_RETRIES }, production, publication) {
   // No provider-capable module is loaded until V2 input validation and immutable
   // persistence succeed. RAW is the sole structural authority; Clean is derived.
   if (![0, MAX_RETRIES].includes(retryLimit)) throw Object.assign(new Error('Invalid catalog retry limit'), { statusCode: 400 });
@@ -231,6 +246,8 @@ async function executeCatalog({ originalRaw, masterClean, inputManifest, openaiK
     manualReviewReasons,
   });
 
+  publication.committed = released && bundle.asset_state === 'RELEASED';
+  const published = released ? readReleased(sku, release.run_id) : null;
   return {
     production: release,
     sku,
@@ -243,7 +260,7 @@ async function executeCatalog({ originalRaw, masterClean, inputManifest, openaiK
     productTruth: ptResult.truth,
     finalMetadata,
     artifacts: {
-      render_candidate_base64: gieResult.pngBuffer.toString('base64'),
+      render_candidate_base64: (published ? published.bytes : gieResult.pngBuffer).toString('base64'),
       product_truth: ptResult.truth,
       prompt: promptText,
       qa_report: qaReport,
@@ -281,6 +298,8 @@ function createHandler({ openaiKeyEnv = 'OPENAI_API_KEY' } = {}) {
         openaiKey: process.env[openaiKeyEnv],
       });
 
+      const persisted = result.final_approval ? readReleased(result.sku, result.production.run_id) : null;
+      if (persisted) result.artifacts.render_candidate_base64 = persisted.bytes.toString('base64');
       const response = {
         production: result.production,
         asset_state: result.final_approval ? 'RELEASED' : 'CANDIDATE_ONLY',
@@ -291,6 +310,7 @@ function createHandler({ openaiKeyEnv = 'OPENAI_API_KEY' } = {}) {
         final_approval: result.final_approval,
         reasons: result.verdict.reasons,
         bundle_dir: result.bundle.dir,
+        ...(persisted ? { release_manifest: persisted.manifest, housekeeping_status: result.bundle.housekeeping_status, cleanup_pending: result.bundle.cleanup_pending, warnings: result.bundle.warnings } : {}),
         pipeline_version: PIPELINE_VERSION,
         input_contract_version: 2,
         retry_count: result.finalMetadata.retry_count,
@@ -301,8 +321,20 @@ function createHandler({ openaiKeyEnv = 'OPENAI_API_KEY' } = {}) {
       require('../production/http').certifyResponse(response, result.production);
       res.status(200).json(response);
     } catch (err) {
-      res.status(err.statusCode || 500).json({ error: 'CATALOG_FAILED', production: err.production || { publication_authorized: false, stages: { RELEASE_GATE: { status: 'FAIL', reasons: ['REQUEST_OR_PIPELINE_ERROR'] } } }, asset_state: 'CANDIDATE_ONLY' });
+      res.status(err.statusCode || 500).json({ error: 'CATALOG_FAILED', ...(err.publication_failure ? { publication_failure: err.publication_failure } : {}), production: err.production || { publication_authorized: false, stages: { RELEASE_GATE: { status: 'FAIL', reasons: ['REQUEST_OR_PIPELINE_ERROR'] } } }, asset_state: 'CANDIDATE_ONLY' });
     }
+  };
+}
+
+function sanitizedPublicationFailure(value, runId) {
+  if (!value || value.publication_status !== 'FAILED') return null;
+  const rollbackFailed = value.code === 'MANIFEST_REVOCATION_FAILED';
+  return {
+    publication_status: 'FAILED', failure_category: 'RELEASE_PUBLICATION_FAILED',
+    sku: typeof value.sku === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(value.sku) ? value.sku : null,
+    run_id: typeof runId === 'string' && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(runId) ? runId : null,
+    quarantine_required: rollbackFailed,
+    ...(rollbackFailed ? { rollback_status: 'FAILED', code: 'MANIFEST_REVOCATION_FAILED' } : {}),
   };
 }
 

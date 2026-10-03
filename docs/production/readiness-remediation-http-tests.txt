@@ -1,0 +1,35 @@
+✔ HTTP 1 insufficient reconstruction cannot reach renderer (96.503167ms)
+✔ HTTP 2 structural failure cannot release (50.529833ms)
+✔ HTTP 3 finish {"finish_id":"unknown"} fails closed (21.3705ms)
+✔ HTTP 3 finish {"finish_revision":"999"} fails closed (21.992708ms)
+✔ HTTP 4 Gate A cannot release (45.490125ms)
+✔ HTTP 4 Gate B cannot release (44.292583ms)
+✔ HTTP 5 review candidate has no final labels or final artifact path (42.407625ms)
+✔ HTTP 6 /hero cannot bypass policy (16.217167ms)
+✔ HTTP 6 /hero-a cannot bypass policy (5.320917ms)
+✔ HTTP 6 /hero-b cannot bypass policy (5.157417ms)
+✔ HTTP 6 /hero-c cannot bypass policy (4.962833ms)
+✔ HTTP 6 /process cannot bypass policy (12.688834ms)
+✔ HTTP 6 /HERO-C/ cannot bypass policy (6.100666ms)
+✔ HTTP candidate binary response carries nonproduction headers (4.786584ms)
+✔ HTTP 7 compliant path releases only after persisted release manifest (93.056292ms)
+✔ HTTP request cannot inject authorization or prompt overrides (5.709667ms)
+✔ HTTP malformed JSON has explicit denied production state (6.365167ms)
+✔ HTTP successful reconstruction still passes every stage before release (91.672625ms)
+✔ HTTP legacy hero approval is downgraded even on successful binary render (184.169792ms)
+✔ HTTP remediation conflicting filename material cannot release (38.474666ms)
+✔ HTTP remediation contradictory gemstones false/3 (35.212375ms)
+✔ HTTP remediation contradictory gemstones true/0 (36.347916ms)
+✔ HTTP release response includes manifest bound to the exact returned image bytes (92.4115ms)
+✔ HTTP refuses release when persisted manifest is missing (103.443375ms)
+✔ HTTP refuses release when persisted manifest is digest (91.722709ms)
+✔ HTTP committed release survives housekeeping remove failure (95.512292ms)
+✔ HTTP committed release survives housekeeping sync failure (88.448541ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1397.422417

@@ -11,7 +11,9 @@ function multipart(parts) {
   chunks.push(Buffer.from(`--${boundary}--\r\n`));return {body:Buffer.concat(chunks),type:`multipart/form-data; boundary=${boundary}`};
 }
 async function server(t,config={}) {
-  const h=harness(config), app=h.load('server.js');
+  const h=harness(config);
+  if(config.beforeApp) config.beforeApp(h);
+  const app=h.load('server.js');
   const s=await new Promise(resolve=>{const v=app.listen(0,'127.0.0.1',()=>resolve(v));});
   t.after(async()=>{await new Promise(resolve=>s.close(resolve));h.cleanup();});
   async function request(route,content,headers={}) {return new Promise((resolve,reject)=>{
@@ -86,4 +88,47 @@ test('HTTP remediation conflicting filename material cannot release',async t=>{
 for(const [value,visible_count] of [[false,3],[true,0]]) test(`HTTP remediation contradictory gemstones ${value}/${visible_count}`,async t=>{
   const v=truth();v.gemstone_presence={value,visible_count,count_confidence:1};const {h,request}=await server(t,{replies:{product_truth:v}});
   const r=await request('/catalog',await catalogBody());denied(r);assert.equal(r.status,422);assert.equal(r.body.production.identity_lock,null);assert.ok(!h.calls.includes('production_comparison'));record('remediation gemstone contradiction','/catalog',r,h.calls);
+});
+
+// Downstream readiness: actual Express responses require persisted bundle validation.
+test('HTTP release response includes manifest bound to the exact returned image bytes',async t=>{
+  const {h,request}=await server(t);const r=await request('/catalog',await catalogBody(),{'x-catalog-include-artifacts':'1'});
+  assert.equal(r.status,200);assert.equal(r.body.asset_state,'RELEASED');
+  const bytes=Buffer.from(r.body.artifacts.render_candidate_base64,'base64');
+  const digest=require('crypto').createHash('sha256').update(bytes).digest('hex');
+  assert.equal(r.body.release_manifest.candidate_sha256,digest);
+  assert.equal(r.body.release_manifest.run_id,r.body.production.run_id);
+  assert.deepEqual(bytes,h.load('catalog/writer.js').readReleased(r.body.sku,r.body.production.run_id).bytes);
+  record('manifest-bound HTTP bytes','/catalog',r,h.calls);
+});
+for(const tamper of ['missing','digest']) test(`HTTP refuses release when persisted manifest is ${tamper}`,async t=>{
+  const {h,request}=await server(t,{beforeApp(h){
+    const writer=h.load('catalog/writer.js'), read=writer.readReleased;let reads=0;
+    writer.readReleased=(sku,runId)=>{
+      if(++reads===2){const dir=path.join(h.directory,'outputs',sku,runId);const file=path.join(dir,tamper==='missing'?'release.json':'final.png');fs.unlinkSync(file);if(tamper==='digest')fs.writeFileSync(file,'tampered');}
+      return read(sku,runId);
+    };
+  }});
+  const r=await request('/catalog',await catalogBody(),{'x-catalog-include-artifacts':'1'});
+  denied(r);assert.equal(r.status,500);assert.ok(!r.body.release_manifest);record(`persisted ${tamper} blocked`,'/catalog',r,h.calls);
+});
+
+for(const failure of ['remove','sync']) test(`HTTP committed release survives housekeeping ${failure} failure`,async t=>{
+  const remove=fs.rmSync,sync=fs.fsyncSync;let cleaned=false,fired=false;
+  const {h,request}=await server(t);
+  fs.rmSync=function(p,...rest){if(String(p).startsWith(h.directory)&&String(p).includes('.staging-')){if(failure==='remove'){fired=true;throw Error('HOUSEKEEPING_REMOVE');}const r=remove.call(fs,p,...rest);cleaned=true;return r;}return remove.call(fs,p,...rest);};
+  fs.fsyncSync=function(fd){if(failure==='sync'&&cleaned&&!fired){fired=true;throw Error('HOUSEKEEPING_SYNC');}return sync.call(fs,fd);};
+  let r;try{r=await request('/catalog',await catalogBody());}finally{fs.rmSync=remove;fs.fsyncSync=sync;}
+  assert.equal(fired,true);assert.equal(r.status,200);assert.equal(r.body.production.lifecycle,'ACTIVE');assert.equal(r.body.production.publication_authorized,true);assert.equal(r.headers['x-gleor-release-gate'],'PASS');assert.equal(r.body.asset_state,'RELEASED');assert.equal(r.body.housekeeping_status,'PENDING');assert.equal(r.body.cleanup_pending,true);assert.ok(!r.body.publication_failure);assert.notEqual(r.body.quarantine_required,true);assert.ok(r.body.warnings.length);assert.ok(r.body.warnings.every(w=>!w.includes('/')));
+  assert.equal(h.load('catalog/writer.js').readReleased(r.body.sku,r.body.production.run_id).manifest.asset_state,'RELEASED');record(`housekeeping ${failure} debt`,'/catalog',r,h.calls);
+});
+
+for(const denyDiagnostic of [false,true]) test(`HTTP rollback quarantine signal survives diagnostic persistence failure=${denyDiagnostic}`,async t=>{
+  const logs=[],{h,request}=await server(t,{console:{...console,error:v=>logs.push(v)}});
+  const content=await catalogBody(),fault=require('./helpers/rollback-fault').rollbackFault({directory:h.directory,denyRevocation:true,denyDiagnostic});let r;
+  try{r=await request('/catalog',content,{'x-catalog-include-artifacts':'1'});}finally{fault.restore();}
+  denied(r);assert.equal(r.status,500);assert.equal(r.body.publication_failure.publication_status,'FAILED');assert.equal(r.body.publication_failure.rollback_status,'FAILED');assert.equal(r.body.publication_failure.code,'MANIFEST_REVOCATION_FAILED');assert.equal(r.body.publication_failure.quarantine_required,true);assert.ok(!r.body.artifacts);assert.ok(!r.body.release_manifest);
+  assert.ok(!/\/private\/|PRIVATE_|secret-fixture|offline-fixture/.test(JSON.stringify(r.body)));
+  assert.equal(logs.length,denyDiagnostic?1:0);if(denyDiagnostic){const event=JSON.parse(logs[0]);assert.equal(event.event,'RELEASE_ROLLBACK_FAILED');assert.equal(event.run_id,r.body.production.run_id);assert.ok(!logs[0].includes('/'));}
+  record('rollback quarantine required','/catalog',r,h.calls);
 });

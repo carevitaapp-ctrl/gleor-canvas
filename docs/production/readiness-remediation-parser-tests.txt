@@ -1,0 +1,26 @@
+✔ strict JSON rejects duplicate state (0.543791ms)
+✔ strict JSON rejects duplicate version (0.068208ms)
+✔ strict JSON rejects duplicate digest (0.03675ms)
+✔ strict JSON rejects duplicate identical values (0.061625ms)
+✔ strict JSON rejects duplicate nested authorization (0.058959ms)
+✔ strict JSON rejects duplicate array member (0.04575ms)
+✔ strict JSON rejects duplicate escaped equivalent (0.037666ms)
+✔ strict JSON rejects duplicate prototype names (0.466125ms)
+✔ strict JSON rejects malformed { (0.086875ms)
+✔ strict JSON rejects malformed {"a":1,} (0.075834ms)
+✔ strict JSON rejects malformed [1,] (0.038041ms)
+✔ strict JSON rejects malformed {"x":undefined} (0.039459ms)
+✔ strict JSON rejects malformed {"x":1} trailing (0.025916ms)
+✔ strict JSON preserves valid {"a":{"x":1},"b":{"x":2},"items":[{"x":3},{"x":4}]} (0.37075ms)
+✔ strict JSON preserves valid {"escaped":"quote\" slash\\ braces{}","empty":{},"array":[]} (0.041375ms)
+✔ strict JSON preserves valid [null,true,false,1,-1.2e+3,"text"] (0.032083ms)
+✔ strict JSON preserves valid null (0.029167ms)
+✔ strict JSON preserves valid 123 (0.039875ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 39.562334
