@@ -10,9 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const OUTPUTS_ROOT = path.join(__dirname, '..', 'outputs');
-const MANUAL_ROOT  = path.join(__dirname, '..', 'renders', 'manual');
-const INPUTS_ROOT  = path.join(__dirname, '..', 'inputs');
+const storage = require('../production/storage');
 
 function conflict(message) {
   return Object.assign(new Error(message), { statusCode: 409 });
@@ -56,8 +54,7 @@ function writeInputs({ originalRaw, masterClean }) {
     || masterClean.sha256 === originalRaw.sha256) {
     throw conflict('Invalid RAW / Master Clean input binding');
   }
-  const dir = path.join(INPUTS_ROOT, originalRaw.sha256, masterClean.sha256);
-  fs.mkdirSync(dir, { recursive: true });
+  const dir = storage.directory(storage.paths().inputs, originalRaw.sha256, masterClean.sha256);
   const rawPath = path.join(dir, `original-raw${originalRaw.ext}`);
   const cleanPath = path.join(dir, 'master-clean.png');
   const manifestPath = path.join(dir, 'input-manifest.json');
@@ -110,7 +107,7 @@ function writeBundle({
       'qa-report.json': JSON.stringify(qaReport, null, 2) + '\n',
       'final-metadata.json': JSON.stringify(finalMetadata, null, 2) + '\n',
     };
-    const { dir, manifestPath, housekeeping_status, cleanup_pending, warnings } = publishRelease({ root: OUTPUTS_ROOT, sku, release, assets });
+    const { dir, manifestPath, housekeeping_status, cleanup_pending, warnings } = publishRelease({ root: storage.paths().outputs, sku, release, assets });
     return { dir, asset_state: 'RELEASED', release_manifest: manifestPath, housekeeping_status, cleanup_pending, warnings, files: {
       original_raw: inputAssets.original_raw.path, master_clean_png: inputAssets.master_clean_png.path,
       input_manifest: inputAssets.manifest_path, render_candidate: path.join(dir, 'final.png'),
@@ -119,10 +116,9 @@ function writeBundle({
       finalMetadata: path.join(dir, 'final-metadata.json'), manualReviewReasons: null,
     } };
   }
-  const root = MANUAL_ROOT;
+  const root = storage.paths().manual;
   // Unique per-run storage; no previous output can be replaced by another run.
-  const dir = path.join(root, sku, crypto.randomUUID());
-  fs.mkdirSync(dir, { recursive: true });
+  const dir = storage.directory(root, sku, crypto.randomUUID());
 
   const truthPath    = path.join(dir, 'product-truth.json');
   const promptPath   = path.join(dir, 'prompt.txt');
@@ -168,11 +164,10 @@ function sha256(buf) {
 
 function writeFailure(production) {
   if (!production || !/^[a-f0-9-]{36}$/.test(production.run_id) || production.publication_authorized !== false) throw Error('Invalid failed-run evidence');
-  const dir = path.join(MANUAL_ROOT, 'failed-runs', production.run_id);
-  fs.mkdirSync(dir, { recursive: true });
+  const dir = storage.directory(storage.paths().manual, 'failed-runs', production.run_id);
   const file = path.join(dir, 'production-state.json');
   fs.writeFileSync(file, JSON.stringify(production, null, 2) + '\n', { flag: 'wx', mode: 0o444 });
   return file;
 }
-function readReleased(sku, runId) { return consumeRelease({ root: OUTPUTS_ROOT, sku, runId }); }
+function readReleased(sku, runId) { return consumeRelease({ root: storage.paths().outputs, sku, runId }); }
 module.exports = { writeInputs, writeBundle, writeFailure, sha256, readReleased };

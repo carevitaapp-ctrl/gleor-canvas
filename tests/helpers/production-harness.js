@@ -48,7 +48,7 @@ function harness(config = {}) {
       if (name.startsWith('.')) { let next = path.resolve(path.dirname(file), name); if (fs.existsSync(next) && fs.statSync(next).isDirectory()) next = path.join(next, 'index.js'); if (!path.extname(next)) next += '.js'; return load(next); }
       return nativeRequire(name);
     };
-    vm.runInNewContext(fs.readFileSync(file, 'utf8'), { module, exports: module.exports, require: localRequire, __dirname: file.endsWith('/catalog/writer.js') ? path.join(directory, 'catalog') : path.dirname(file), Buffer, console: config.console || console, process: { env: { OPENAI_API_KEY: 'offline-fixture', PHOTOROOM_API_KEY: 'offline-fixture' } }, Date, setTimeout, clearTimeout }, { filename: file });
+    vm.runInNewContext(fs.readFileSync(file, 'utf8'), { module, exports: module.exports, require: localRequire, __dirname: path.dirname(file), Buffer, console: config.console || console, process: { getuid: process.getuid.bind(process), platform: process.platform, env: { NODE_ENV: 'test', GLEOR_DATA_ROOT: directory, OPENAI_API_KEY: 'offline-fixture', PHOTOROOM_API_KEY: 'offline-fixture', ...config.env } }, Date, setTimeout, clearTimeout }, { filename: file });
     return module.exports;
   }
   return { directory, load: name => load(path.join(root, name)), calls, rendererCalls: () => rendererCalls, cleanup: () => fs.rmSync(directory, { recursive: true, force: true }) };

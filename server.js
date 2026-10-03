@@ -6,6 +6,15 @@ const app = express();
 const upload = multer({ limits: { fileSize: 25 * 1024 * 1024 } });
 
 app.use(require('./production/http').protect);
+const storage = require('./production/storage');
+storage.initialize();
+app.use((req, res, next) => {
+  const route = req.path.toLowerCase().replace(/\/+$/, '') || '/';
+  if (req.method === 'POST' && Object.hasOwn(require('./production/http').ROUTES, route) && !storage.status().ready) {
+    return res.status(503).json({ error: 'PRODUCTION_STORAGE_NOT_READY', final_approval: false });
+  }
+  next();
+});
 app.use(express.json({ limit: '20mb' }));
 
 const CATEGORY_CONFIG = {
@@ -18,7 +27,7 @@ const CATEGORY_CONFIG = {
 };
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', categories: Object.keys(CATEGORY_CONFIG) });
+  res.json({ status: 'ok', alive: true, storage: storage.status(), categories: Object.keys(CATEGORY_CONFIG) });
 });
 
 async function renderCanvas(inputBuffer, rawCategory) {
