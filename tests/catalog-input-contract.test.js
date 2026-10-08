@@ -353,9 +353,11 @@ test('writer rejects mutated canonical bytes and unsafe digest values', async ()
 function serverRoute() {
   const routes = new Map(); let handlerCalls = 0;
   const c = contract();
-  const app = { use() {}, get() {}, post(route, ...handlers) { routes.set(route, handlers); }, listen() {} };
+  const app = { locals: {}, use() {}, get() {}, post(route, ...handlers) { routes.set(route, handlers); }, listen() {} };
   const express = () => app; express.json = () => () => {};
-  load('server.js', {
+  const server = load('server.js', {
+    // This harness isolates multipart parsing; real gate/HTTP coverage lives in production-runtime.test.js.
+    './production/gates': { createService: () => ({ middleware() {} }) },
     express, multer, sharp() { throw new Error('Legacy image processing must not run'); }, './heroEngine': {},
     './catalog': { createHandler: () => (req, res) => {
       handlerCalls++;
@@ -363,6 +365,7 @@ function serverRoute() {
       catch (err) { res.status(err.statusCode || 500).json({ error: err.message }); }
     } },
   });
+  server.createApp();
   return { handlers: routes.get('/catalog'), routes, handlerCalls: () => handlerCalls };
 }
 

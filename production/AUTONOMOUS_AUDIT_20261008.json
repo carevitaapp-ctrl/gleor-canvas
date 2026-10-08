@@ -1,0 +1,25 @@
+{
+  "status": "BLOCKED",
+  "audited_commit": "223d8e8e0177c1975597f30b93430dc3606080b5",
+  "runtime": "1.2.0",
+  "existing_standards_preserved": true,
+  "http_gates": {
+    "tests": 10,
+    "pass": 10,
+    "skip": 0
+  },
+  "regressions": {
+    "tests": 67,
+    "pass": 67,
+    "fail": 0
+  },
+  "changed_implementation": "Only legacy multipart test harness calls exported createApp; production gate and runtime bytes unchanged",
+  "linux_high_shutdown": "UNRESOLVED_CURRENT_UNCOMMITTED_113_FILE_IMPLEMENTATION_AND_LINUX_EVIDENCE_NOT_AVAILABLE_IN_REMOTE_REF_OR_ACCESSIBLE_PROJECT_COPY",
+  "target_camera_semantics": "BLOCKED_SOURCE_CAMERA_ONLY",
+  "champagne_rose_machine_qa": "BLOCKED_CANONICAL_FINISH_QA_NOT_CALIBRATED",
+  "production_processors": "BLOCKED_UNCONFIGURED",
+  "deployment": "NOT_DEPLOYED",
+  "real_provider_calls": 0,
+  "protected_assets_changed": 0,
+  "regression_evidence": "carevitaapp-ctrl/gleor-business ops/evidence/visual-regression-tests.txt"
+}
